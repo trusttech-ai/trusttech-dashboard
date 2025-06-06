@@ -23,7 +23,7 @@ const InfoCard: React.FC<InfoCardProps> = ({
   linkColor
 }) => {
   return (
-    <div className="bg-white overflow-hidden shadow rounded-lg">
+    <div className="bg-card-bg border border-card-border overflow-hidden shadow rounded-lg transition-colors duration-200">
       <div className="p-5">
         <InfoCardHeader 
           icon={icon} 

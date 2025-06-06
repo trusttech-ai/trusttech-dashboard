@@ -36,7 +36,7 @@ const MobileListItem: React.FC<MobileListItemProps> = ({
   };
 
   return (
-    <div className="bg-white shadow rounded-lg overflow-hidden">
+    <div className="bg-card-bg border border-card-border shadow rounded-lg overflow-hidden transition-colors duration-200">
       <div className="px-4 py-4 sm:px-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
@@ -48,28 +48,28 @@ const MobileListItem: React.FC<MobileListItemProps> = ({
                   className="h-10 w-10 rounded-full" 
                 />
               ) : (
-                <div className="h-10 w-10 bg-gray-300 rounded-full flex items-center justify-center">
-                  <svg className="h-6 w-6 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="h-10 w-10 bg-hover-bg rounded-full flex items-center justify-center transition-colors duration-200">
+                  <svg className="h-6 w-6 text-foreground opacity-70" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                 </div>
               )}
             </div>
             <div className="ml-3">
-              <Text variant="p" className="text-sm font-medium text-gray-900">{name}</Text>
-              {subtitle && <Text variant="p" className="text-xs text-gray-500">{subtitle}</Text>}
+              <Text variant="p" className="text-sm font-medium text-foreground transition-colors duration-200">{name}</Text>
+              {subtitle && <Text variant="p" className="text-xs text-foreground opacity-70 transition-colors duration-200">{subtitle}</Text>}
             </div>
           </div>
-          <div className="flex items-center text-sm text-gray-500">
+          <div className="flex items-center text-sm text-foreground opacity-70 transition-colors duration-200">
             <p>{time}</p>
           </div>
         </div>
         <div className="mt-2">
-          <Text variant="p" className="text-sm text-gray-600">{message}</Text>
+          <Text variant="p" className="text-sm text-foreground opacity-90 transition-colors duration-200">{message}</Text>
         </div>
         <div className="mt-2 flex justify-between">
           {getStatusBadge()}
-          <a href={actionLink} className="text-sm font-medium text-indigo-600 hover:text-indigo-500">Ver</a>
+          <a href={actionLink} className="text-sm font-medium text-primary hover:text-opacity-90 transition-colors duration-200">Ver</a>
         </div>
       </div>
     </div>

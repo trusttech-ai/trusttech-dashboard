@@ -25,7 +25,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, toggleMobileMenu }) =
   // Sidebar para desktop
   const DesktopSidebar = (
     <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 left-0">
-      <div className="flex flex-col flex-grow pt-5 bg-gray-800 overflow-y-auto">
+      <div className="flex flex-col flex-grow pt-5 bg-sidebar-bg border-r border-card-border overflow-y-auto transition-colors duration-200">
         <div className="flex items-center flex-shrink-0 px-4">
           <Logo />
         </div>
@@ -42,7 +42,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, toggleMobileMenu }) =
             ))}
           </nav>
         </div>
-        <div className="flex-shrink-0 flex bg-gray-700 p-4">
+        <div className="flex-shrink-0 flex p-4 border-t border-card-border transition-colors duration-200">
           <UserInfo 
             name="Tom Cook"
             avatarUrl="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"

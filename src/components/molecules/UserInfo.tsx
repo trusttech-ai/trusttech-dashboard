@@ -24,8 +24,8 @@ const UserInfo: React.FC<UserInfoProps> = ({
         />
       </div>
       <div className="ml-3">
-        <Text variant="p" className="text-sm font-medium text-white">{name}</Text>
-        <a href={profileLink} className="text-xs font-medium text-gray-300 hover:text-gray-200">
+        <Text variant="p" className="text-sm font-medium text-foreground transition-colors duration-200">{name}</Text>
+        <a href={profileLink} className="text-xs font-medium text-foreground opacity-70 hover:opacity-100 transition-colors duration-200">
           Ver perfil
         </a>
       </div>

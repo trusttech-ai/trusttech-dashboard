@@ -9,8 +9,8 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   title
 }) => {
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
-      <Text variant="h1" className="text-2xl font-semibold text-gray-900">{title}</Text>
+    <div className="max-w-7xl mx-auto">
+      <Text variant="h1" className="text-2xl font-semibold text-foreground transition-colors duration-200">{title}</Text>
     </div>
   );
 };

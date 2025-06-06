@@ -12,7 +12,7 @@ const InfoCardFooter: React.FC<InfoCardFooterProps> = ({
   color = 'text-indigo-600 hover:text-indigo-500'
 }) => {
   return (
-    <div className="bg-gray-50 px-5 py-3">
+    <div className="bg-hover-bg border-t border-card-border px-5 py-3 transition-colors duration-200">
       <div className="text-sm">
         <a href={href} className={`font-medium ${color}`}>
           {linkText}

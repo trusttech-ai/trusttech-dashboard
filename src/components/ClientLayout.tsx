@@ -3,6 +3,7 @@ import React from 'react';
 import { usePathname } from 'next/navigation';
 
 import AppShell from './organisms/AppShell';
+import { ThemeProvider } from '@/context/ThemeContext';
 
 interface ClientLayoutProps {
   children: React.ReactNode;
@@ -12,8 +13,12 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
   const pathname = usePathname();
   
   if (pathname === '/' || pathname === '/login') {
-    return <>{children}</>;
+    return <ThemeProvider>{children}</ThemeProvider>;
   }
   
-  return <AppShell>{children}</AppShell>;
+  return (
+    <ThemeProvider>
+      <AppShell>{children}</AppShell>
+    </ThemeProvider>
+  );
 }

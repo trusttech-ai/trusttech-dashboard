@@ -1,8 +1,44 @@
 @import "tailwindcss";
 
-:root {
+:root,
+.light {
   --background: #ffffff;
   --foreground: #171717;
+  --primary: #3b82f6;
+  --card-bg: #ffffff;
+  --card-border: #e5e7eb;
+  --input-bg: #ffffff;
+  --input-border: #d1d5db;
+  --input-text: #171717;
+  --button-bg: #3b82f6;
+  --button-text: #ffffff;
+  --sidebar-bg: #f9fafb;
+  --sidebar-hover: #f3f4f6;
+  --sidebar-active: #e5e7eb;
+  --header-bg: #ffffff;
+  --table-header-bg: #f9fafb;
+  --table-border: #e5e7eb;
+  --hover-bg: #f3f4f6;
+}
+
+.dark {
+  --background: #111827;
+  --foreground: #f9fafb;
+  --primary: #3b82f6;
+  --card-bg: #1f2937;
+  --card-border: #374151;
+  --input-bg: #1f2937;
+  --input-border: #374151;
+  --input-text: #f9fafb;
+  --button-bg: #3b82f6;
+  --button-text: #ffffff;
+  --sidebar-bg: #111827;
+  --sidebar-hover: #1f2937;
+  --sidebar-active: #374151;
+  --header-bg: #1f2937;
+  --table-header-bg: #1f2937;
+  --table-border: #374151;
+  --hover-bg: #1f2937;
 }
 
 @theme inline {
@@ -12,15 +48,12 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

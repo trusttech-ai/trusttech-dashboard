@@ -7,6 +7,7 @@ import PageHeader from  '../components/organisms/PageHeader';
 import InfoCardGrid from  '../components/organisms/InfoCardGrid';
 import RecentConversationsTable from  '../components/organisms/RecentConversationsTable';
 import RecentConversationsList from  '../components/organisms/RecentConversationsList';
+import ThemeToggle from '../components/atoms/ThemeToggle';
 
 const DashboardPage: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -77,12 +78,12 @@ const DashboardPage: React.FC = () => {
   ];
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-background text-foreground transition-colors duration-200">
       <Sidebar 
         mobileMenuOpen={mobileMenuOpen} 
         toggleMobileMenu={toggleMobileMenu} 
       />
-      <div className="flex flex-col flex-1 ">
+      <div className="flex flex-col flex-1">
         <MobileHeader 
           title="Trusttech" 
           onMenuToggle={toggleMobileMenu} 
@@ -90,13 +91,16 @@ const DashboardPage: React.FC = () => {
         
         <main className="flex-1">
           <div className="py-6">
-            <PageHeader title="Dashboard" />
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 flex justify-between items-center">
+              <PageHeader title="Dashboard" />
+              <ThemeToggle className="hidden md:block" />
+            </div>
             
             <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
               <InfoCardGrid cards={infoCards} />
 
               <div className="mt-8">
-                <h2 className="text-lg leading-6 font-medium text-gray-900">Conversas recentes</h2>
+                <h2 className="text-lg leading-6 font-medium text-foreground transition-colors duration-200">Conversas recentes</h2>
                 
                 <RecentConversationsTable conversations={conversations} />
                 

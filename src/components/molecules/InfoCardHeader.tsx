@@ -22,7 +22,7 @@ const InfoCardHeader: React.FC<InfoCardHeaderProps> = ({
         />
       </div>
       <div className="ml-5 w-0 flex-1">
-        <Text variant="label" className="text-sm font-medium text-gray-500 truncate">
+        <Text variant="label" className="text-sm font-medium text-foreground opacity-70 truncate transition-colors duration-200">
           {title}
         </Text>
       </div>

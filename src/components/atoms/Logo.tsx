@@ -1,19 +1,32 @@
 import React from 'react';
-import Image from './Image';
 
 interface LogoProps {
   className?: string;
+  size?: 'sm' | 'md' | 'lg';
+  variant?: 'light' | 'dark';
 }
 
-const Logo: React.FC<LogoProps> = ({ className = '' }) => {
+const Logo: React.FC<LogoProps> = ({ 
+  className = '',
+  size = 'md',
+  variant = 'light'
+}) => {
+  const sizeClasses = {
+    sm: 'text-xl',
+    md: 'text-2xl',
+    lg: 'text-3xl',
+  };
+  
+  const textColorClass = variant === 'light' ? 'text-white' : 'text-gray-900';
+  
   return (
     <div className={`flex items-center ${className}`}>
-      <Image 
-        src="/logo.svg" 
-        alt="Trusttech" 
-        className="h-8 w-auto" 
-      />
-      <span className="ml-2 text-white text-lg font-medium">Trusttech</span>
+      <div className="bg-purple-600 rounded-md p-2 flex items-center justify-center">
+        <span className="font-bold text-white">LI</span>
+      </div>
+      <span className={`ml-2 ${textColorClass} ${sizeClasses[size]} font-bold`}>
+        Lorem <span className="text-purple-400">Ipsum</span>
+      </span>
     </div>
   );
 };

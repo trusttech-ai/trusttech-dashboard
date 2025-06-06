@@ -4,13 +4,13 @@
 .light {
   --background: #ffffff;
   --foreground: #171717;
-  --primary: #3b82f6;
+  --primary: #8b5cf6; /* Updated to purple */
   --card-bg: #ffffff;
   --card-border: #e5e7eb;
   --input-bg: #ffffff;
   --input-border: #d1d5db;
   --input-text: #171717;
-  --button-bg: #3b82f6;
+  --button-bg: #8b5cf6; /* Updated to purple */
   --button-text: #ffffff;
   --sidebar-bg: #f9fafb;
   --sidebar-hover: #f3f4f6;
@@ -24,13 +24,13 @@
 .dark {
   --background: #111827;
   --foreground: #f9fafb;
-  --primary: #3b82f6;
+  --primary: #8b5cf6; /* Updated to purple */
   --card-bg: #1f2937;
   --card-border: #374151;
   --input-bg: #1f2937;
   --input-border: #374151;
   --input-text: #f9fafb;
-  --button-bg: #3b82f6;
+  --button-bg: #8b5cf6; /* Updated to purple */
   --button-text: #ffffff;
   --sidebar-bg: #111827;
   --sidebar-hover: #1f2937;

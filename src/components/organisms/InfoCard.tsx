@@ -23,14 +23,14 @@ const InfoCard: React.FC<InfoCardProps> = ({
   linkColor
 }) => {
   return (
-    <div className="bg-card-bg border border-card-border overflow-hidden shadow rounded-lg transition-colors duration-200">
-      <div className="p-5">
+    <div className="bg-gray-800/50 border border-purple-900/30 overflow-hidden shadow-lg rounded-xl backdrop-blur-sm transition-all duration-200 hover:shadow-purple-900/10">
+      <div className="p-6">
         <InfoCardHeader 
           icon={icon} 
           title={title} 
           iconColor={iconColor} 
         />
-        <div className="mt-2">
+        <div className="mt-3">
           <InfoCardContent value={value} />
         </div>
       </div>

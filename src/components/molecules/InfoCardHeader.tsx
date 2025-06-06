@@ -15,14 +15,14 @@ const InfoCardHeader: React.FC<InfoCardHeaderProps> = ({
 }) => {
   return (
     <div className="flex items-center">
-      <div className={`flex-shrink-0 ${iconColor} rounded-md p-3`}>
+      <div className={`flex-shrink-0 ${iconColor} rounded-lg p-3 shadow-lg`}>
         <Icon 
           name={icon} 
           className="h-6 w-6 text-white" 
         />
       </div>
       <div className="ml-5 w-0 flex-1">
-        <Text variant="label" className="text-sm font-medium text-foreground opacity-70 truncate transition-colors duration-200">
+        <Text variant="label" className="text-sm font-medium text-gray-300 truncate">
           {title}
         </Text>
       </div>

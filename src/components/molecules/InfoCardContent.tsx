@@ -8,7 +8,7 @@ const InfoCardContent: React.FC<InfoCardContentProps> = ({
   value
 }) => {
   return (
-    <div className="text-lg font-medium text-foreground transition-colors duration-200">
+    <div className="text-3xl font-bold text-white">
       {value}
     </div>
   );

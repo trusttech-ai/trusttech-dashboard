@@ -24,8 +24,8 @@ const DashboardPage: React.FC = () => {
       value: 34,
       linkText: 'Ver todas',
       linkHref: '#',
-      iconColor: 'bg-indigo-500',
-      linkColor: 'text-indigo-600 hover:text-indigo-500'
+      iconColor: 'bg-purple-600',
+      linkColor: 'text-purple-400 hover:text-purple-500'
     },
     {
       icon: 'calendar',
@@ -34,7 +34,7 @@ const DashboardPage: React.FC = () => {
       linkText: 'Ver todos',
       linkHref: '#',
       iconColor: 'bg-green-500',
-      linkColor: 'text-green-600 hover:text-green-500'
+      linkColor: 'text-green-400 hover:text-green-500'
     },
     {
       icon: 'users',
@@ -43,7 +43,7 @@ const DashboardPage: React.FC = () => {
       linkText: 'Ver todos',
       linkHref: '#',
       iconColor: 'bg-blue-500',
-      linkColor: 'text-blue-600 hover:text-blue-500'
+      linkColor: 'text-blue-400 hover:text-blue-500'
     }
   ];
 
@@ -78,18 +78,25 @@ const DashboardPage: React.FC = () => {
   ];
 
   return (
-    <div className="flex h-screen bg-background text-foreground transition-colors duration-200">
+    <div className="flex h-screen bg-gray-900 text-white transition-colors duration-200">
       <Sidebar 
         mobileMenuOpen={mobileMenuOpen} 
         toggleMobileMenu={toggleMobileMenu} 
       />
-      <div className="flex flex-col flex-1">
+      <div className="flex flex-col flex-1 relative overflow-hidden">
+        {/* Background elements */}
+        <div className="absolute inset-0 pointer-events-none z-0">
+          <div className="absolute -right-20 -top-20 w-64 h-64 rounded-full bg-purple-900/20 blur-3xl"></div>
+          <div className="absolute left-1/4 bottom-1/4 w-80 h-80 rounded-full bg-purple-800/10 blur-3xl"></div>
+          <div className="absolute right-1/3 top-1/2 w-40 h-40 rounded-full bg-blue-900/10 blur-3xl"></div>
+        </div>
+        
         <MobileHeader 
-          title="Trusttech" 
+          title="Lorem Ipsum" 
           onMenuToggle={toggleMobileMenu} 
         />
         
-        <main className="flex-1">
+        <main className="flex-1 relative z-10">
           <div className="py-6">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 flex justify-between items-center">
               <PageHeader title="Dashboard" />
@@ -99,8 +106,11 @@ const DashboardPage: React.FC = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
               <InfoCardGrid cards={infoCards} />
 
-              <div className="mt-8">
-                <h2 className="text-lg leading-6 font-medium text-foreground transition-colors duration-200">Conversas recentes</h2>
+              <div className="mt-10">
+                <div className="flex items-center mb-4">
+                  <div className="h-6 w-1 bg-purple-600 rounded-full mr-3"></div>
+                  <h2 className="text-xl font-semibold text-white">Conversas recentes</h2>
+                </div>
                 
                 <RecentConversationsTable conversations={conversations} />
                 

@@ -24,13 +24,13 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, toggleMobileMenu }) =
 
   // Sidebar para desktop
   const DesktopSidebar = (
-    <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 left-0">
-      <div className="flex flex-col flex-grow pt-5 bg-sidebar-bg border-r border-card-border overflow-y-auto transition-colors duration-200">
-        <div className="flex items-center flex-shrink-0 px-4">
-          <Logo />
+    <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 left-0 z-20">
+      <div className="flex flex-col flex-grow pt-5 bg-gray-900/95 border-r border-purple-900/30 overflow-y-auto backdrop-blur-sm">
+        <div className="flex items-center flex-shrink-0 px-6 py-2">
+          <Logo size="md" />
         </div>
-        <div className="mt-5 flex-grow flex flex-col">
-          <nav className="flex-1 px-2 space-y-1">
+        <div className="mt-8 flex-grow flex flex-col">
+          <nav className="flex-1 px-4 space-y-2">
             {navItems.map((item, index) => (
               <NavItem 
                 key={index}
@@ -42,7 +42,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, toggleMobileMenu }) =
             ))}
           </nav>
         </div>
-        <div className="flex-shrink-0 flex p-4 border-t border-card-border transition-colors duration-200">
+        <div className="flex-shrink-0 flex p-4 border-t border-gray-800/80">
           <UserInfo 
             name="Tom Cook"
             avatarUrl="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"

@@ -97,11 +97,6 @@ const LoginPage: React.FC = () => {
             >
               Entrar
             </Button>
-            <div className="mt-6 text-center">
-              <a href="#" className="text-sm text-purple-400 hover:text-purple-300 transition-colors duration-200">
-                Esqueceu sua senha?
-              </a>
-            </div>
           </form>
         </div>
       </div>

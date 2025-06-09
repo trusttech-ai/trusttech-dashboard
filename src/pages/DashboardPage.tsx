@@ -92,7 +92,7 @@ const DashboardPage: React.FC = () => {
         </div>
         
         <MobileHeader 
-          title="Lorem Ipsum" 
+          title="Trusttech" 
           onMenuToggle={toggleMobileMenu} 
         />
         

@@ -22,10 +22,10 @@ const Logo: React.FC<LogoProps> = ({
   return (
     <div className={`flex items-center ${className}`}>
       <div className="bg-purple-600 rounded-md p-2 flex items-center justify-center">
-        <span className="font-bold text-white">LI</span>
+        <span className="font-bold text-white">Dashboard</span>
       </div>
       <span className={`ml-2 ${textColorClass} ${sizeClasses[size]} font-bold`}>
-        Lorem <span className="text-purple-400">Ipsum</span>
+        Trusttech
       </span>
     </div>
   );

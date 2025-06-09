@@ -15,7 +15,7 @@ const LoginPage: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log({ email, password });
-    
+
     router.push('/dashboard');
   };
 
@@ -29,13 +29,13 @@ const LoginPage: React.FC = () => {
       <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex-col items-center justify-center p-8">
         <div className="max-w-md mx-auto text-center">
           <Logo size="lg" className="mb-8" />
-          <h1 className="text-4xl font-bold text-white mb-6">Bem-vindo de volta</h1>
+          <h1 className="text-4xl font-bold text-white mb-6">Bem-vindo!</h1>
           <p className="text-purple-200 text-lg mb-8">
             Acesse sua conta para gerenciar seus projetos e visualizar seus dados em tempo real.
           </p>
           <div className="mt-8 bg-purple-800/30 p-6 rounded-lg border border-purple-700/50">
             <p className="text-white/80 italic">&ldquo;Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.&rdquo;</p>
-            <p className="text-purple-300 mt-4">— Equipe Lorem Ipsum</p>
+            <p className="text-purple-300 mt-4">— Equipe Trusttech</p>
           </div>
         </div>
       </div>
@@ -80,7 +80,7 @@ const LoginPage: React.FC = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full bg-gray-700/50 text-white border border-purple-900/30 px-4 py-3 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
                   required
-                  placeholder="••••••••"
+                  placeholder="*******"
                 />
                 <button 
                   type="button"

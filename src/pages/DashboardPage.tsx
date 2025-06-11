@@ -7,7 +7,6 @@ import PageHeader from  '../components/organisms/PageHeader';
 import InfoCardGrid from  '../components/organisms/InfoCardGrid';
 import RecentConversationsTable from  '../components/organisms/RecentConversationsTable';
 import RecentConversationsList from  '../components/organisms/RecentConversationsList';
-import ThemeToggle from '../components/atoms/ThemeToggle';
 
 const DashboardPage: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -100,7 +99,6 @@ const DashboardPage: React.FC = () => {
           <div className="py-6">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 flex justify-between items-center">
               <PageHeader title="Dashboard" />
-              <ThemeToggle className="hidden md:block" />
             </div>
             
             <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
@@ -113,7 +111,7 @@ const DashboardPage: React.FC = () => {
                 </div>
                 
                 <RecentConversationsTable conversations={conversations} />
-                
+
                 <RecentConversationsList conversations={conversations} />
               </div>
             </div>

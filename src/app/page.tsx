@@ -1,4 +1,5 @@
+import { redirect } from 'next/navigation';
+
 export default function Home() {
-  // O middleware redireciona para /login automaticamente
-  return null;
+  redirect('/login');
 }

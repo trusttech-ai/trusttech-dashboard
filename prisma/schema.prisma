@@ -8,9 +8,43 @@ generator client {
 }
 
 model User {
-  id       Int     @id @default(autoincrement())
-  email    String  @unique
-  password String
-  name     String?
-  createdAt DateTime @default(now())
+  id            Int       @id @default(autoincrement())
+  email         String    @unique
+  password      String
+  name          String?
+  role          Role      @default(USER)
+  isActive      Boolean   @default(true)
+  profileImage  String?
+  lastLogin     DateTime?
+  refreshToken  String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  settings      UserSettings?
+}
+
+model Session {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  token     String    @unique
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  ipAddress String?
+  userAgent String?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserSettings {
+  id              Int     @id @default(autoincrement())
+  userId          Int     @unique
+  theme           String  @default("light")
+  emailNotifications Boolean @default(true)
+  user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum Role {
+  USER
+  ADMIN
+  MANAGER
 }

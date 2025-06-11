@@ -25,7 +25,7 @@ const Logo: React.FC<LogoProps> = ({
         <span className="font-bold text-white">Dashboard</span>
       </div>
       <span className={`ml-2 ${textColorClass} ${sizeClasses[size]} font-bold`}>
-        Trusttech
+        Trusttech.AI
       </span>
     </div>
   );

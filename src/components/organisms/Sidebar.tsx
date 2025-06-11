@@ -16,10 +16,6 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, toggleMobileMenu }) =
   const isMobile = useIsMobile();
   const navItems = [
     { icon: 'home', label: 'Dashboard', href: '/dashboard', active: pathname === '/dashboard' },
-    { icon: 'calendar', label: 'Agendamentos', href: '/agendamentos', active: pathname === '/agendamentos' },
-    { icon: 'message', label: 'Mensagens', href: '/mensagens', active: pathname === '/mensagens' },
-    { icon: 'chart', label: 'Relatórios', href: '/relatorios', active: pathname === '/relatorios' },
-    { icon: 'settings', label: 'Configurações', href: '/configuracoes', active: pathname === '/configuracoes' },
   ];
 
   // Sidebar para desktop

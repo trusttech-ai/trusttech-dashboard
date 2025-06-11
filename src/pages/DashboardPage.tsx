@@ -12,7 +12,6 @@ const DashboardPage: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const toggleMobileMenu = () => {
-    console.log('Toggling mobile menu', !mobileMenuOpen);
     setMobileMenuOpen(!mobileMenuOpen);
   };
 
@@ -56,6 +55,60 @@ const DashboardPage: React.FC = () => {
       time: 'Ontem',
       actionLink: '#'
     },
+        {
+      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=4&w=256&h=256&q=60',
+      name: 'Virginia Novamente',
+      subtitle: '+55 83 9304-9259',
+      message: 'Oi, aqui é a Virginia novamente! Só passando para...',
+      status: 'Respondido' as const,
+      time: 'Ontem',
+      actionLink: '#'
+    },
+        {
+      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=4&w=256&h=256&q=60',
+      name: 'Virginia Novamente',
+      subtitle: '+55 83 9304-9259',
+      message: 'Oi, aqui é a Virginia novamente! Só passando para...',
+      status: 'Respondido' as const,
+      time: 'Ontem',
+      actionLink: '#'
+    },
+        {
+      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=4&w=256&h=256&q=60',
+      name: 'Virginia Novamente',
+      subtitle: '+55 83 9304-9259',
+      message: 'Oi, aqui é a Virginia novamente! Só passando para...',
+      status: 'Respondido' as const,
+      time: 'Ontem',
+      actionLink: '#'
+    },
+        {
+      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=4&w=256&h=256&q=60',
+      name: 'Virginia Novamente',
+      subtitle: '+55 83 9304-9259',
+      message: 'Oi, aqui é a Virginia novamente! Só passando para...',
+      status: 'Respondido' as const,
+      time: 'Ontem',
+      actionLink: '#'
+    },
+        {
+      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=4&w=256&h=256&q=60',
+      name: 'Virginia Novamente',
+      subtitle: '+55 83 9304-9259',
+      message: 'Oi, aqui é a Virginia novamente! Só passando para...',
+      status: 'Respondido' as const,
+      time: 'Ontem',
+      actionLink: '#'
+    },
+        {
+      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=4&w=256&h=256&q=60',
+      name: 'Virginia Novamente',
+      subtitle: '+55 83 9304-9259',
+      message: 'Oi, aqui é a Virginia novamente! Só passando para...',
+      status: 'Respondido' as const,
+      time: 'Ontem',
+      actionLink: '#'
+    },
     {
       avatar: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=4&w=256&h=256&q=60',
       name: 'Ryan Basque',
@@ -82,7 +135,7 @@ const DashboardPage: React.FC = () => {
         mobileMenuOpen={mobileMenuOpen} 
         toggleMobileMenu={toggleMobileMenu} 
       />
-      <div className="flex flex-col flex-1 relative overflow-hidden">
+      <div className="flex flex-col flex-1 relative overflow-y-auto pt-16 md:pt-0">
         {/* Background elements */}
         <div className="absolute inset-0 pointer-events-none z-0">
           <div className="absolute -right-20 -top-20 w-64 h-64 rounded-full bg-purple-900/20 blur-3xl"></div>
@@ -90,10 +143,12 @@ const DashboardPage: React.FC = () => {
           <div className="absolute right-1/3 top-1/2 w-40 h-40 rounded-full bg-blue-900/10 blur-3xl"></div>
         </div>
         
-        <MobileHeader 
-          title="Trusttech" 
-          onMenuToggle={toggleMobileMenu} 
-        />
+        <div className="fixed top-0 left-0 right-0 z-30 md:hidden bg-gray-900 shadow-lg">
+          <MobileHeader 
+            title="Trusttech" 
+            onMenuToggle={toggleMobileMenu} 
+          />
+        </div>
         
         <main className="flex-1 relative z-10">
           <div className="py-6">

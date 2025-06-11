@@ -11,15 +11,22 @@ export async function POST(req: NextRequest) {
     if (accessToken) {
       // Decodificar token para obter userId (sem verificar validade)
       try {
-        const secret = process.env.JWT_SECRET || "seu_secret_padrao";
-        const secretUtf8 = new TextEncoder().encode(secret);
+        // Verificamos se conseguimos decodificar o token para obter o userId
+        const decoded = jose.decodeJwt(accessToken);
+        const userId = decoded.sub; // subject contém o userId
 
-        await jose.jwtVerify(accessToken, secretUtf8);
+        if (userId) {
+          // Remover a sessão do banco de dados
+          await prisma.session.deleteMany({
+            where: { token: accessToken },
+          });
 
-        // Remover a sessão do banco de dados
-        await prisma.session.deleteMany({
-          where: { token: accessToken },
-        });
+          // Opcional: Remover o refresh token do usuário
+          await prisma.user.update({
+            where: { id: Number(userId) },
+            data: { refreshToken: null },
+          });
+        }
       } catch (error) {
         // Token pode estar inválido, mas ainda queremos limpar os cookies
         console.log("Token inválido durante logout:", error);
@@ -27,10 +34,13 @@ export async function POST(req: NextRequest) {
     }
 
     // Limpar todos os cookies de autenticação
-    await cookies().delete("accessToken");
-    await cookies().delete("refreshToken");
+    cookies().delete("accessToken");
+    cookies().delete("refreshToken");
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      message: "Logout realizado com sucesso",
+    });
   } catch (error) {
     console.error("Erro ao fazer logout:", error);
     return NextResponse.json(

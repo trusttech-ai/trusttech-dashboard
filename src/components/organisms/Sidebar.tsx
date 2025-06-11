@@ -20,7 +20,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, toggleMobileMenu }) =
 
   // Sidebar para desktop
   const DesktopSidebar = (
-    <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 left-0 z-20">
+    <div className="hidden md:flex md:w-74 md:flex-col md:fixed md:inset-y-0 left-0 z-20">
       <div className="flex flex-col flex-grow pt-5 bg-gray-900/95 border-r border-purple-900/30 overflow-y-auto backdrop-blur-sm">
         <div className="flex items-center flex-shrink-0 px-6 py-2">
           <Logo size="md" />

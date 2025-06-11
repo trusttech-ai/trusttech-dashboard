@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import * as jose from "jose"; // Biblioteca compatível com Edge Runtime
+import * as jose from "jose";
 
 // Função para extrair o token do cookie
 const getToken = (request: NextRequest) => {
@@ -8,7 +8,7 @@ const getToken = (request: NextRequest) => {
 };
 
 // Rotas públicas que não precisam de autenticação
-const publicRoutes = ["/", "/login", "/register", "/reset-password"];
+const publicRoutes = ["/", "/login", "/register", "/forgot-password"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

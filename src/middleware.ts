@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verify, decode } from "jsonwebtoken";
+import * as jose from "jose"; // Biblioteca compatível com Edge Runtime
 
 // Função para extrair o token do cookie
 const getToken = (request: NextRequest) => {
@@ -28,20 +28,20 @@ export async function middleware(request: NextRequest) {
   }
 
   try {
-    // Primeiro tenta decodificar o token para ver se a estrutura está correta
-    const decoded = decode(token);
-    if (!decoded) {
-      throw new Error("Token malformado");
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      console.error("JWT_SECRET não está definido no ambiente!");
+      throw new Error("Configuração de segurança ausente");
     }
 
-    const secret = process.env.JWT_SECRET ?? "default";
+    const secretUtf8 = new TextEncoder().encode(secret);
+    const { payload } = await jose.jwtVerify(token, secretUtf8);
 
-    console.log("Verificando token JWT com o segredo:", secret);
-
-    verify(token, secret);
+    console.log("Token verificado com sucesso:", payload);
 
     return NextResponse.next();
-  } catch {
+  } catch (error: any) {
+    console.error("Erro na verificação do token:", error.message);
     console.log("Token inválido ou expirado, redirecionando para login");
     const url = new URL("/login", request.url);
     url.searchParams.set("callbackUrl", encodeURI(request.url));

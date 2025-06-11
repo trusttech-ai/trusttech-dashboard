@@ -43,6 +43,30 @@ model UserSettings {
   user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+
+model trusttech_messages_log {
+  id           String    @id @default(uuid()) @db.Uuid
+  host_number  String?   @db.VarChar(25)
+  host_name  String?   @db.VarChar(25)
+  user_number  String?   @db.VarChar(25)
+  user_name    String?
+  user_message String?
+  bot_response String?
+  created_at   DateTime? @default(now()) @db.Timestamp(6)
+  updated_at   DateTime? @default(now()) @updatedAt @db.Timestamp(6)
+}
+
+model trusttech_rewind_cron {
+  id           String   @id @default(uuid()) @db.Uuid
+  host_name  String?   @db.VarChar(25)
+  host_number  String?   @db.VarChar(25)
+  user_number  String   @db.VarChar(25)
+  user_name    String?  @db.VarChar(25)
+  active       Boolean
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+}
+
 enum Role {
   USER
   ADMIN

@@ -8,7 +8,7 @@ const getToken = (request: NextRequest) => {
 };
 
 // Rotas públicas que não precisam de autenticação
-const publicRoutes = ["/", "/login", "/register", "/forgot-password"];
+const publicRoutes = ["/", "/login", "/register", "/forgot-password", "/about"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

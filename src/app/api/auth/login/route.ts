@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
 
     // Cria uma nova sessão
     const userAgent = req.headers.get("user-agent") || "";
-    const ip = req.headers.get("x-forwarded-for") || req.ip || "";
+    const ip = req.headers.get("x-forwarded-for") || "";
 
     await prisma.session.create({
       data: {
@@ -122,6 +122,7 @@ export async function POST(req: NextRequest) {
       },
       accessToken,
     });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     console.error("Erro ao fazer login:", err);
 

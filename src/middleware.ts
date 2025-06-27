@@ -35,13 +35,10 @@ export async function middleware(request: NextRequest) {
     }
 
     const secretUtf8 = new TextEncoder().encode(secret);
-    const { payload } = await jose.jwtVerify(token, secretUtf8);
-
-    console.log("Token verificado com sucesso:", payload);
+    await jose.jwtVerify(token, secretUtf8);
 
     return NextResponse.next();
   } catch (error: any) {
-    console.error("Erro na verificação do token:", error.message);
     console.log("Token inválido ou expirado, redirecionando para login");
     const url = new URL("/login", request.url);
     url.searchParams.set("callbackUrl", encodeURI(request.url));

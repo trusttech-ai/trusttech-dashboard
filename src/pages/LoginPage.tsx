@@ -45,7 +45,6 @@ const LoginPage: React.FC = () => {
     
     try {
       await login(email, password);
-      console.log("Login bem-sucedido. Redirecionando...");
       await router.push('/dashboard');
     } catch (err: any) {
       console.error('Erro no login:', err);
@@ -136,14 +135,14 @@ const LoginPage: React.FC = () => {
                   {showPassword ? 'Ocultar' : 'Mostrar'}
                 </button>
               </div>
-              <div className="flex justify-end mt-1">
+              {/* <div className="flex justify-end mt-1">
                 <Link 
                   href="/forgotPassword" 
                   className="text-xs text-purple-400 hover:text-purple-300 transition-colors"
                 >
                   Esqueceu sua senha?
                 </Link>
-              </div>
+              </div> */}
             </div>
             
             <div className="mb-6">

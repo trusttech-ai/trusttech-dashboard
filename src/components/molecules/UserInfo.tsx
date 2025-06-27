@@ -1,7 +1,8 @@
 import React from "react";
 
-import Text from "../atoms/Text";
 import { useAuth } from "@/context/AuthContext";
+
+import Text from "../atoms/Text";
 
 const UserInfo: React.FC = () => {
   const { user, logout } = useAuth();
@@ -42,12 +43,12 @@ const UserInfo: React.FC = () => {
     )}`.toUpperCase();
   };
 
-  const initials = getInitials(user?.name ?? "Erro");
+  const initials = getInitials(user?.name ?? "John Doe");
 
   if (!user) return null;
 
   return (
-<div className="w-full px-4 overflow-hidden">
+<div className="w-full px-6 pl-0 overflow-hidden">
   <div className="flex items-center w-full max-w-full space-x-3">
     <div className="flex-shrink-0 inline-flex items-center justify-center h-10 w-10 rounded-full bg-gradient-to-br from-purple-600 to-blue-500 text-white font-medium ring-2 ring-purple-600/30">
       {initials}

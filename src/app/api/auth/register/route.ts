@@ -4,9 +4,15 @@ import bcrypt from "bcrypt";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password, name, role = "USER" } = await req.json();
+    const {
+      email,
+      password,
+      name,
+      role = "USER",
+      document,
+      profileImage,
+    } = await req.json();
 
-    // Valida os dados obrigatórios
     if (!email || !password) {
       return NextResponse.json(
         { error: "Email e senha são obrigatórios" },
@@ -14,20 +20,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Hash da senha
     const hashed = await bcrypt.hash(password, 10);
 
-    // Cria o usuário com transação para garantir que UserSettings seja criado
     const user = await prisma.$transaction(async (tx) => {
-      // Criar o usuário
       const newUser = await tx.user.create({
         data: {
           email,
           password: hashed,
           name,
           role,
+          document,
+          profileImage,
           lastLogin: new Date(),
-          // Criar as configurações do usuário automaticamente
           settings: {
             create: {
               theme: "dark",
@@ -43,12 +47,13 @@ export async function POST(req: NextRequest) {
       return newUser;
     });
 
-    // Retorna os dados do usuário (sem incluir a senha)
+    // Retorna os dados do usuário para o AuthContext
     return NextResponse.json({
       id: user.id,
       email: user.email,
       name: user.name,
       role: user.role,
+      document: user.document,
       isActive: user.isActive,
       createdAt: user.createdAt,
       settings: {
@@ -56,11 +61,16 @@ export async function POST(req: NextRequest) {
         emailNotifications: user.settings?.emailNotifications,
       },
     });
-  } catch (err) {
+  } catch (err: unknown) {
     console.error("Erro ao registrar usuário:", err);
 
     // Tratamento de erros específicos
-    if (err.code === "P2002") {
+    if (
+      err &&
+      typeof err === "object" &&
+      "code" in err &&
+      err.code === "P2002"
+    ) {
       return NextResponse.json(
         { error: "Email já registrado" },
         { status: 409 }

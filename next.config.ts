@@ -1,14 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  devIndicators: false,
-  webSocketTimeout: 300000, // 5 minutos
-  api: {
-    bodyParser: false,
-    responseLimit: "50mb",
-  },
   serverRuntimeConfig: {
-    maxRequestBodySize: "4gb",
+    maxRequestBodySize: "50gb",
   },
   async redirects() {
     return [];

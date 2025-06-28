@@ -2,6 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 
 import Button from '../components/atoms/Button';
 import Logo from '../components/atoms/Logo';
@@ -45,13 +46,19 @@ const RegisterPage: React.FC = () => {
     }
   };
 
-  // Função handleImageUpload modificada
+  // Função handleImageUpload modificada para aceitar apenas imagens
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Verificar se é um arquivo gigante
-    const isHugeFile = file.size > 100 * 1024 * 1024; // > 100MB
+    // Validar se é uma imagem
+    if (!file.type.startsWith('image/')) {
+      setErrors(prev => ({
+        ...prev,
+        profileImage: "Por favor, selecione apenas imagens (JPG, PNG, GIF, etc.)"
+      }));
+      return;
+    }
     
     // Limpar erro se existir
     if (errors.profileImage) {
@@ -65,40 +72,8 @@ const RegisterPage: React.FC = () => {
     // Definir arquivo para upload
     setProfileImage(file);
     
-    // Para arquivos enormes, mostrar informações em vez de preview
-    if (isHugeFile) {
-      // Não tentar criar preview para arquivos gigantes
-      setPreviewImage(null);
-      
-      // Mostrar feedback ao usuário sobre o arquivo grande
-      alert(`Arquivo grande selecionado (${(file.size / (1024 * 1024)).toFixed(2)}MB). O upload pode levar vários minutos.`);
-      
-      // Informação de arquivo grande
-      const fileInfo = document.createElement('div');
-      fileInfo.className = 'flex items-center justify-center flex-col';
-      const icon = document.createElement('div');
-      
-      // Mostrar ícone específico baseado no tipo de arquivo
-      if (file.type.startsWith('video/')) {
-        icon.innerHTML = `
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-          </svg>
-        `;
-      } else {
-        icon.innerHTML = `
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-          </svg>
-        `;
-      }
-      
-      return;
-    }
-    
-    // Para arquivos normais, criar preview como antes
+    // Criar preview da imagem
     try {
-      // Criar preview da imagem somente para arquivos de tamanho razoável
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewImage(reader.result as string);
@@ -109,7 +84,7 @@ const RegisterPage: React.FC = () => {
       };
       reader.readAsDataURL(file);
     } catch (error) {
-      console.error('Erro ao processar arquivo para preview:', error);
+      console.error('Erro ao processar imagem para preview:', error);
       setPreviewImage(null);
     }
   };
@@ -200,33 +175,36 @@ const RegisterPage: React.FC = () => {
       try {
         setIsUploading(true);
         
-        // Preparar os dados
         const userData = {
           name: `${formData.firstName} ${formData.lastName}`,
           email: formData.email,
-          document: formData.document.replace(/\D/g, ''), // Enviar documento sem formatação
+          document: formData.document.replace(/\D/g, ''),
           password: formData.password,
           role: "USER",
           profileImage: '',
         };
 
-        // Se tiver uma imagem, fazer upload primeiro
-        let profileImageUrl: string;
+        let profileImageUrl: string | undefined;
         if (profileImage) {
-          // Usar a nova função de upload que suporta arquivos grandes
-          setUploadProgress(0);
-          console.log("test")
-          profileImageUrl = await uploadFile(profileImage,  (progress) => {
-            setUploadProgress(progress);
-          });
+          if (!profileImage.type.startsWith('image/')) {
+            throw new Error('Apenas imagens são permitidas para foto de perfil');
+          }
+          
+          try {
+            setUploadProgress(0);
+            profileImageUrl = await uploadFile(profileImage, (progress) => {
+              setUploadProgress(progress);
+            });
+            
+            if (profileImageUrl) {
+              userData.profileImage = profileImageUrl;
+            }
+          } catch (uploadError) {
+            console.error('Erro no upload da imagem:', uploadError);
+            throw new Error('Não foi possível fazer upload da imagem. Por favor, tente novamente.');
+          }
         }
 
-        // Adicionar a URL da imagem aos dados do usuário, se disponível
-        if (profileImageUrl) {
-          userData.profileImage = profileImageUrl;
-        }
-
-        // Fazer requisição para sua API de registro
         const response = await fetch('/api/auth/register', {
           method: 'POST',
           headers: {
@@ -235,14 +213,13 @@ const RegisterPage: React.FC = () => {
           body: JSON.stringify(userData),
         });
 
-        // Processar a resposta
         const data = await response.json();
         
         if (!response.ok) {
           throw new Error(data.error || 'Erro ao criar conta');
         }
         
-        // Feedback de sucesso
+        // Feedback de sucess
         alert("Conta criada com sucesso! Você será redirecionado para o login.");
         router.push('/login');
       } catch (err) {
@@ -452,13 +429,14 @@ const RegisterPage: React.FC = () => {
                 <div className="mb-6">
                   <label className="block text-gray-300 mb-3 text-sm font-medium">Foto de Perfil</label>
                   
-                  {/* Substituir a seção de preview de imagem no formulário */}
                   <div className="flex items-center justify-center mb-4">
                     {previewImage ? (
                       <div className="relative">
-                        <img 
+                        <Image 
                           src={previewImage} 
                           alt="Preview" 
+                          width={128}
+                          height={128}
                           className="w-32 h-32 rounded-full object-cover border-2 border-purple-500"
                         />
                         <button 
@@ -466,37 +444,6 @@ const RegisterPage: React.FC = () => {
                           onClick={removeImage}
                           className="absolute -top-2 -right-2 bg-gray-800 text-red-400 rounded-full p-1 hover:bg-gray-700 transition-colors"
                           aria-label="Remover imagem"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                      </div>
-                    ) : profileImage ? (
-                      // Preview alternativo para arquivos grandes
-                      <div className="relative">
-                        <div className="w-32 h-32 rounded-full bg-gray-700 border-2 border-purple-500 flex flex-col items-center justify-center">
-                          {profileImage.type.startsWith('video/') ? (
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                            </svg>
-                          ) : (
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                            </svg>
-                          )}
-                          <span className="text-xs text-center text-gray-300 mt-2 px-1 line-clamp-1">
-                            {profileImage.name.length > 15 ? profileImage.name.substring(0, 12) + '...' : profileImage.name}
-                          </span>
-                          <span className="text-xs text-center text-gray-400">
-                            {(profileImage.size / (1024 * 1024)).toFixed(1)} MB
-                          </span>
-                        </div>
-                        <button 
-                          type="button"
-                          onClick={removeImage}
-                          className="absolute -top-2 -right-2 bg-gray-800 text-red-400 rounded-full p-1 hover:bg-gray-700 transition-colors"
-                          aria-label="Remover arquivo"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -511,7 +458,7 @@ const RegisterPage: React.FC = () => {
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-purple-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
-                        <span className="text-xs text-gray-300">Adicionar arquivo</span>
+                        <span className="text-xs text-gray-300">Adicionar foto</span>
                       </div>
                     )}
                     
@@ -519,28 +466,12 @@ const RegisterPage: React.FC = () => {
                       type="file" 
                       ref={fileInputRef}
                       onChange={handleImageUpload}
+                      accept="image/*"
                       className="hidden"
                     />
                   </div>
-                  
-                  {/* Mostrar indicador especial para arquivos grandes */}
-                  {profileImage && profileImage.size > 100 * 1024 * 1024 && (
-                    <div className="mt-2 mb-4 p-2 bg-blue-900/30 border border-blue-500/30 rounded-md">
-                      <p className="text-xs text-center text-blue-300">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Arquivo grande detectado. O upload pode levar vários minutos. Por favor, seja paciente.
-                      </p>
-                    </div>
-                  )}
-
                   {errors.profileImage && <p className="mt-1 text-sm text-red-500 text-center">{errors.profileImage}</p>}
-                  <p className="text-xs text-gray-400 text-center">
-                    {profileImage?.type.startsWith('video/') 
-                      ? 'Formatos de vídeo suportados: MP4, WebM, MOV' 
-                      : 'Formatos suportados: JPG, PNG, PDF, MP4 e outros'}
-                  </p>
+                  <p className="text-xs text-gray-400 text-center">Formatos suportados: JPG, PNG, GIF. Tamanho máximo: 10MB</p>
                 </div>
                 
                 <div className="mb-4">

@@ -1,17 +1,7 @@
-/**
- * Função para upload de arquivos com suporte a grandes arquivos usando chunks
- * @param file O arquivo a ser enviado
- * @param onProgress Callback para progresso de upload (0-100)
- * @returns Promise com a URL do arquivo enviado
- */
 export async function uploadFile(
   file: File,
   onProgress?: (progress: number) => void
 ): Promise<string> {
-  console.log(
-    `Iniciando upload do arquivo: ${file.name}, tamanho: ${file.size} bytes`,
-    file
-  );
   const CHUNK_SIZE = 2 * 1024 * 1024;
   const fileId = crypto.randomUUID();
   const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
@@ -21,7 +11,6 @@ export async function uploadFile(
     const end = Math.min(start + CHUNK_SIZE, file.size);
     const chunk = file.slice(start, end);
 
-    // Enviar o chunk
     const response = await fetch("/api/upload", {
       method: "POST",
       headers: {

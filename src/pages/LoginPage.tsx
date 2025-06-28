@@ -1,15 +1,15 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+
+import { useAuth } from '@/context/AuthContext';
 
 import Button from '../components/atoms/Button';
 import Logo from '../components/atoms/Logo';
-import { useAuth } from '@/context/AuthContext';
 
 const LoginPage: React.FC = () => {
   const router = useRouter();
-  const { login, error: authError } = useAuth();
+  const { login } = useAuth();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -26,11 +26,7 @@ const LoginPage: React.FC = () => {
     }
   }, []);
   
-  useEffect(() => {
-    if (authError) {
-      setError(authError);
-    }
-  }, [authError]);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

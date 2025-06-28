@@ -3,7 +3,6 @@ import { Storage } from "@google-cloud/storage";
 import path from "path";
 
 const keyPath = path.join(process.cwd(), "gcp-key.json");
-
 const storage = new Storage({
   keyFilename: keyPath,
 });
@@ -13,7 +12,8 @@ const bucketName = "trusttech-storage";
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const folder = searchParams.get("folder") || "approval-pending";
+    const folder =
+      searchParams.get("folder") || "approvals/lunna/approval-pending";
 
     const bucket = storage.bucket(bucketName);
     const [files] = await bucket.getFiles({
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { fileName, action } = await request.json();
+    const { fileName, action, comment = "" } = await request.json();
 
     if (!fileName || !action) {
       return NextResponse.json(
@@ -66,14 +66,30 @@ export async function POST(request: NextRequest) {
     const bucket = storage.bucket(bucketName);
     const sourceFile = bucket.file(fileName);
 
-    let destinationPath: string;
+    // Check if file exists before attempting to move it
+    const [exists] = await sourceFile.exists();
+    if (!exists) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `File not found: ${fileName}`,
+        },
+        { status: 404 }
+      );
+    }
+
+    // Extract the file basename to use in the new path
+    const baseName = path.basename(fileName);
+
+    // Create paths within the lunna directory
+    let destinationPath;
 
     switch (action) {
       case "approve":
-        destinationPath = fileName.replace("approval-pending/", "approved/");
+        destinationPath = `approvals/lunna/approved/${baseName}`;
         break;
       case "reject":
-        destinationPath = fileName.replace("approval-pending/", "rejected/");
+        destinationPath = `approvals/lunna/rejected/${baseName}`;
         break;
       default:
         return NextResponse.json(
@@ -85,12 +101,26 @@ export async function POST(request: NextRequest) {
         );
     }
 
-    // Move file to appropriate folder
-    await sourceFile.move(destinationPath);
+    // Create destination file reference
+    const destinationFile = bucket.file(destinationPath);
+
+    // Copy file first, then delete the original after successful copy
+    console.log(`Moving ${fileName} to ${destinationPath}`);
+    await sourceFile.copy(destinationFile);
+    await sourceFile.delete();
+
+    // Store action details in database if needed
+    try {
+      // Database logging code would go here
+      // This is where you would store the comment if DB is set up
+    } catch (dbError) {
+      console.error("Database error:", dbError);
+      // Continue with the process even if DB fails
+    }
 
     return NextResponse.json({
       success: true,
-      message: `File ${action}d successfully`,
+      message: `File ${action}ed successfully`,
       newPath: destinationPath,
     });
   } catch (error) {

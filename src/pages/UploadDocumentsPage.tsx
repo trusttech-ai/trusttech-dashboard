@@ -1,5 +1,6 @@
 "use client";
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
+import path from 'path';
 
 import Sidebar from '../components/organisms/Sidebar';
 import MobileHeader from '../components/molecules/MobileHeader';
@@ -16,6 +17,15 @@ interface UploadedFile {
   uploadedAt: string;
 }
 
+interface ApprovalAction {
+  id: string;
+  fileName: string;
+  filePath: string;
+  action: string;
+  comment: string;
+  createdAt: string;
+}
+
 const UploadDocumentsPage: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -24,6 +34,9 @@ const UploadDocumentsPage: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const [approvalHistory, setApprovalHistory] = useState<ApprovalAction[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [historyError, setHistoryError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -107,6 +120,10 @@ const UploadDocumentsPage: React.FC = () => {
     }
   };
 
+  // Constantes de upload
+  const MAX_FILE_SIZE = 25 * 1024 * 1024 * 1024; // 25GB
+  const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB - tamanho recomendado para chunks
+
   const handleUpload = async () => {
     if (selectedFiles.length === 0) {
       setError('Selecione pelo menos um arquivo para enviar');
@@ -123,51 +140,117 @@ const UploadDocumentsPage: React.FC = () => {
     setSuccess(null);
     setUploadProgress({});
 
+    // Define o caminho para upload no GCS
+    const uploadPath = "approvals/lunna/approval-pending"; // Caminho personalizado para esta página
+
     const uploadResults: UploadedFile[] = [];
     let hasError = false;
 
     for (let i = 0; i < selectedFiles.length; i++) {
       const file = selectedFiles[i];
       const progressKey = `${file.name}-${i}`;
-
+      
       try {
         setUploadProgress(prev => ({ ...prev, [progressKey]: 0 }));
+        
+        // Verificar se o arquivo é muito grande
+        if (file.size > MAX_FILE_SIZE) {
+          hasError = true;
+          setError(`Arquivo ${file.name} excede o tamanho máximo de ${MAX_FILE_SIZE / (1024 * 1024 * 1024)}GB`);
+          setUploadProgress(prev => ({ ...prev, [progressKey]: -1 }));
+          continue;
+        }
 
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('category', category);
-        formData.append('description', description);
-
-        // Simular progresso
-        const progressInterval = setInterval(() => {
-          setUploadProgress(prev => ({
-            ...prev,
-            [progressKey]: Math.min((prev[progressKey] || 0) + 10, 90)
-          }));
-        }, 200);
-
-        const response = await fetch('/api/upload-documents', {
-          method: 'POST',
-          body: formData,
-        });
-
-        clearInterval(progressInterval);
-
-        const data = await response.json();
-
+        let response, data;
+        
+        // Para arquivos pequenos (< 10MB), fazer upload direto
+        if (file.size <= CHUNK_SIZE * 2) {
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('category', category);
+          formData.append('description', description);
+          
+          response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'x-file-name': file.name,
+              'x-storage-path': uploadPath, // Adiciona o caminho de armazenamento
+            },
+          });
+          
+          data = await response.json();
+        } 
+        // Para arquivos grandes, usar upload em chunks
+        else {
+          const fileId = crypto.randomUUID();
+          const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+          
+          for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+            const start = chunkIndex * CHUNK_SIZE;
+            const end = Math.min(start + CHUNK_SIZE - 1, file.size - 1);
+            const chunk = file.slice(start, end + 1);
+            
+            const formData = new FormData();
+            formData.append('chunk', chunk);
+            
+            // Calcular progresso baseado nos chunks
+            const chunkProgress = Math.round(((chunkIndex + 1) / totalChunks) * 100);
+            setUploadProgress(prev => ({ ...prev, [progressKey]: Math.min(chunkProgress, 99) }));
+            
+            response = await fetch('/api/upload', {
+              method: 'POST',
+              body: chunk,
+              headers: {
+                'Content-Type': 'application/octet-stream',
+                'x-file-name': file.name,
+                'x-file-id': fileId,
+                'x-file-size': file.size.toString(),
+                'x-storage-path': uploadPath, // Adiciona o caminho de armazenamento
+                'Content-Range': `bytes ${start}-${end}/${file.size}`
+              },
+            });
+            
+            data = await response.json();
+            
+            if (!data.success) {
+              throw new Error(data.error || 'Erro no upload do chunk');
+            }
+            
+            // Se completou o upload
+            if (data.complete) {
+              break;
+            }
+          }
+        }
+        
         if (data.success) {
           setUploadProgress(prev => ({ ...prev, [progressKey]: 100 }));
-          uploadResults.push(data.file);
+          
+          // Formatar dados do arquivo para o estado
+          const uploadedFile: UploadedFile = {
+            originalName: data.originalName,
+            fileName: data.fileName,
+            size: data.size,
+            type: data.type || file.type,
+            category: category,
+            description: description,
+            url: data.url,
+            uploadedAt: new Date().toISOString(),
+          };
+          
+          uploadResults.push(uploadedFile);
         } else {
           hasError = true;
           setError(data.error || 'Erro no upload');
           setUploadProgress(prev => ({ ...prev, [progressKey]: -1 }));
-        }        } catch (err) {
-          hasError = true;
-          setError('Erro de conexão durante o upload');
-          setUploadProgress(prev => ({ ...prev, [progressKey]: -1 }));
-          console.error('Upload error:', err);
         }
+      } catch (err) {
+        hasError = true;
+        console.error('Upload error:', err);
+        setError('Erro de conexão durante o upload');
+        setUploadProgress(prev => ({ ...prev, [progressKey]: -1 }));
+      }
     }
 
     setIsUploading(false);
@@ -184,6 +267,42 @@ const UploadDocumentsPage: React.FC = () => {
         setUploadProgress({});
       }, 3000);
     }
+  };
+
+  const fetchApprovalHistory = async () => {
+    try {
+      setLoadingHistory(true);
+      setHistoryError(null);
+      
+      const response = await fetch('/api/approval-history?limit=10');
+      const data = await response.json();
+      
+      if (data.success) {
+        setApprovalHistory(data.approvalActions);
+      } else {
+        setHistoryError(data.error || 'Erro ao carregar histórico de aprovações');
+      }
+    } catch (err) {
+      setHistoryError('Erro ao conectar com o servidor');
+      console.error('Error fetching approval history:', err);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  useEffect(() => {
+    // Fetch approval history when the component mounts or after new uploads
+    fetchApprovalHistory();
+  }, [uploadedFiles]); // Re-fetch when uploadedFiles changes
+
+  const formatApprovalDate = (dateString: string) => {
+    return new Date(dateString).toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   };
 
   const clearSuccess = () => {
@@ -310,10 +429,10 @@ const UploadDocumentsPage: React.FC = () => {
                         Arraste arquivos aqui ou clique para selecionar
                       </h3>
                       <p className="text-gray-400 mb-4">
-                        Formatos aceitos: PDF, imagens, documentos do Office, texto, JSON, CSV
+                        Todos os tipos de arquivo são aceitos
                       </p>
                       <p className="text-sm text-gray-500 mb-4">
-                        Tamanho máximo: 50MB por arquivo
+                        Tamanho máximo: 25GB por arquivo
                       </p>
                       <input
                         type="file"
@@ -321,7 +440,8 @@ const UploadDocumentsPage: React.FC = () => {
                         onChange={handleFileSelect}
                         className="hidden"
                         id="file-upload"
-                        accept=".pdf,.jpg,.jpeg,.png,.gif,.txt,.doc,.docx,.xls,.xlsx,.json,.csv"
+                        // Remover a restrição de tipos de arquivo
+                        // accept=".pdf,.jpg,.jpeg,.png,.gif,.txt,.doc,.docx,.xls,.xlsx,.json,.csv"
                       />
                       <label
                         htmlFor="file-upload"
@@ -461,8 +581,8 @@ const UploadDocumentsPage: React.FC = () => {
                         )}
                       </button>
                     </div>
-                  </div>
-                </div>
+                  </div> {/* Closing the missing div for "p-6 space-y-6" */}
+                </div> {/* Closing div for "bg-gray-800/50 backdrop-blur-lg" */}
 
                 {/* Lista de arquivos enviados recentemente */}
                 {uploadedFiles.length > 0 && (
@@ -480,50 +600,157 @@ const UploadDocumentsPage: React.FC = () => {
                     </div>
 
                     <div className="divide-y divide-gray-700/50">
-                      {uploadedFiles.slice(-5).reverse().map((file, index) => (
-                        <div key={index} className="p-4 hover:bg-gray-700/20 transition-colors">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                              <div className="flex-shrink-0">
-                                {getFileIcon(file.type)}
-                              </div>
-                              <div>
-                                <h3 className="text-sm font-medium text-white">
-                                  {file.originalName}
-                                </h3>
-                                <div className="flex items-center space-x-4 text-xs text-gray-400 mt-1">
-                                  <span>{formatFileSize(file.size)}</span>
-                                  <span>•</span>
-                                  <span className="capitalize">{file.category}</span>
-                                  <span>•</span>
-                                  <span>{new Date(file.uploadedAt).toLocaleString('pt-BR')}</span>
+                      {uploadedFiles.slice(-5).reverse().map((file, index) => {
+                        // Find if this file has an approval action
+                        const approvalAction = approvalHistory.find(action => 
+                          action.fileName === file.fileName || action.fileName === path.basename(file.fileName)
+                        );
+                        
+                        return (
+                          <div key={index} className="p-4 hover:bg-gray-700/20 transition-colors">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <div className="flex-shrink-0">
+                                  {getFileIcon(file.type)}
                                 </div>
-                                {file.description && (
-                                  <p className="text-xs text-gray-500 mt-1">{file.description}</p>
+                                <div>
+                                  <h3 className="text-sm font-medium text-white">
+                                    {file.originalName}
+                                  </h3>
+                                  <div className="flex items-center space-x-4 text-xs text-gray-400 mt-1">
+                                    <span>{formatFileSize(file.size)}</span>
+                                    <span>•</span>
+                                    <span className="capitalize">{file.category}</span>
+                                    <span>•</span>
+                                    <span>{new Date(file.uploadedAt).toLocaleString('pt-BR')}</span>
+                                  </div>
+                                  {file.description && (
+                                    <p className="text-xs text-gray-500 mt-1">{file.description}</p>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                {approvalAction ? (
+                                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                    approvalAction.action === 'approve' 
+                                      ? 'bg-green-100 text-green-800' 
+                                      : 'bg-red-100 text-red-800'
+                                  }`}>
+                                    {approvalAction.action === 'approve' ? 'Aprovado' : 'Rejeitado'}
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    Aguardando Aprovação
+                                  </span>
                                 )}
+                                <a
+                                  href={file.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-purple-400 hover:text-purple-300 transition-colors"
+                                >
+                                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                  </svg>
+                                </a>
                               </div>
                             </div>
-                            <div className="flex items-center space-x-2">
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                Aguardando Aprovação
-                              </span>
-                              <a
-                                href={file.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-purple-400 hover:text-purple-300 transition-colors"
-                              >
-                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                </svg>
-                              </a>
-                            </div>
+                            
+                            {/* Show rejection comment if available */}
+                            {approvalAction && approvalAction.action === 'reject' && approvalAction.comment && (
+                              <div className="mt-2 bg-red-900/10 p-2 rounded border border-red-500/30">
+                                <p className="text-xs text-red-300">
+                                  <span className="font-medium">Motivo da rejeição: </span>
+                                  {approvalAction.comment}
+                                </p>
+                              </div>
+                            )}
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}
+
+                {/* Histórico de Aprovações */}
+                <div className="bg-gray-800/50 backdrop-blur-lg border border-gray-700/50 rounded-lg shadow-lg mt-8">
+                  <div className="px-6 py-4 border-b border-gray-700/50">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <div className="h-6 w-1 bg-blue-600 rounded-full mr-3"></div>
+                        <h2 className="text-xl font-semibold text-white">
+                          Histórico de Aprovações
+                        </h2>
+                      </div>
+                      <button
+                        onClick={fetchApprovalHistory}
+                        className="inline-flex items-center px-3 py-1 border border-gray-600 rounded-md text-sm text-gray-300 hover:bg-gray-700 transition-colors"
+                      >
+                        <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Atualizar
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    {loadingHistory ? (
+                      <div className="p-6 text-center">
+                        <div className="inline-flex items-center">
+                          <svg className="animate-spin h-5 w-5 text-purple-500 mr-3" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          <span className="text-gray-300">Carregando histórico...</span>
+                        </div>
+                      </div>
+                    ) : historyError ? (
+                      <div className="p-6 text-center">
+                        <p className="text-red-400">{historyError}</p>
+                      </div>
+                    ) : approvalHistory.length === 0 ? (
+                      <div className="p-6 text-center">
+                        <p className="text-gray-400">Nenhum histórico de aprovação disponível.</p>
+                      </div>
+                    ) : (
+                      <div className="divide-y divide-gray-700/50">
+                        {approvalHistory.map((item) => (
+                          <div key={item.id} className="p-4 hover:bg-gray-700/20 transition-colors">
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center">
+                                  <h3 className="text-sm font-medium text-white">
+                                    {item.fileName}
+                                  </h3>
+                                  <span className={`ml-3 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                    item.action === 'approve' 
+                                      ? 'bg-green-100 text-green-800' 
+                                      : 'bg-red-100 text-red-800'
+                                  }`}>
+                                    {item.action === 'approve' ? 'Aprovado' : 'Rejeitado'}
+                                  </span>
+                                </div>
+                                
+                                <p className="text-xs text-gray-400 mt-1">
+                                  {formatApprovalDate(item.createdAt)}
+                                </p>
+                                
+                                {item.comment && (
+                                  <div className="mt-2 bg-gray-700/30 p-2 rounded border border-gray-600/50">
+                                    <p className="text-xs text-gray-300">
+                                      <span className="font-medium">Comentário: </span>{item.comment}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>

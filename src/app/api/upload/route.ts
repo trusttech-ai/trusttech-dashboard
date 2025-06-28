@@ -32,21 +32,10 @@ const BLOCKED_EXTENSIONS = [
   ".js",
 ];
 
-// Tipos de arquivos permitidos para upload
-const ALLOWED_VIDEO_TYPES = [
-  "video/mp4",
-  "video/webm",
-  "video/ogg",
-  "video/quicktime",
-  "video/x-msvideo",
-];
-
-// Verifica se um arquivo está em progresso de upload
 const uploadsInProgress = new Map();
 
 export async function POST(req: NextRequest) {
   try {
-    // Obter parâmetros de chunk do cabeçalho
     const contentRange = req.headers.get("content-range");
     // const contentType = req.headers.get("content-type");
     const originalFilename = req.headers.get("x-file-name");
@@ -220,7 +209,6 @@ export async function POST(req: NextRequest) {
           type: file.type,
         });
       } else {
-        // Para arquivos grandes, exigir upload em chunks
         return NextResponse.json(
           { error: "Arquivos maiores que 10MB devem ser enviados em chunks" },
           { status: 400 }
@@ -233,94 +221,6 @@ export async function POST(req: NextRequest) {
       { error: "Erro ao processar upload" },
       { status: 500 }
     );
-  }
-}
-
-// Implementar endpoint para verificar status de upload
-export async function GET(req: NextRequest) {
-  const url = new URL(req.url);
-  const fileId = url.searchParams.get("fileId");
-
-  if (!fileId) {
-    return NextResponse.json(
-      { error: "ID do arquivo não fornecido" },
-      { status: 400 }
-    );
-  }
-
-  const uploadInfo = uploadsInProgress.get(fileId);
-
-  if (!uploadInfo) {
-    return NextResponse.json(
-      { error: "Upload não encontrado ou já finalizado" },
-      { status: 404 }
-    );
-  }
-
-  return NextResponse.json({
-    fileId,
-    originalName: uploadInfo.originalName,
-    uploadedSize: uploadInfo.uploadedSize,
-    totalSize: uploadInfo.totalSize,
-    progress: Math.round(
-      (uploadInfo.uploadedSize / uploadInfo.totalSize) * 100
-    ),
-    lastActivity: uploadInfo.lastChunk,
-  });
-}
-
-// Implementar endpoint para limpar uploads abandonados
-export async function DELETE(req: NextRequest) {
-  // Apenas para administradores (adicione autenticação)
-  const url = new URL(req.url);
-  const fileId = url.searchParams.get("fileId");
-
-  if (fileId) {
-    // Remover upload específico
-    const uploadInfo = uploadsInProgress.get(fileId);
-    if (uploadInfo) {
-      const tempDir = join(process.cwd(), "public", "uploads", "temp");
-      const tempFilePath = join(tempDir, fileId);
-
-      try {
-        await Deno.remove(tempFilePath);
-      } catch (e) {
-        // Arquivo pode não existir
-      }
-
-      uploadsInProgress.delete(fileId);
-      return NextResponse.json({ success: true });
-    }
-
-    return NextResponse.json(
-      { error: "Upload não encontrado" },
-      { status: 404 }
-    );
-  } else {
-    // Limpar uploads abandonados (mais de 24h)
-    const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
-    const abandonedUploads = [];
-
-    uploadsInProgress.forEach((info, id) => {
-      if (info.lastChunk < oneDayAgo) {
-        abandonedUploads.push(id);
-      }
-    });
-
-    for (const id of abandonedUploads) {
-      const uploadInfo = uploadsInProgress.get(id);
-      try {
-        await Deno.remove(uploadInfo.tempPath);
-      } catch (e) {
-        // Arquivo pode não existir
-      }
-      uploadsInProgress.delete(id);
-    }
-
-    return NextResponse.json({
-      success: true,
-      cleaned: abandonedUploads.length,
-    });
   }
 }
 

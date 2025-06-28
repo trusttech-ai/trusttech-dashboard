@@ -7,9 +7,14 @@ import PageHeader from  '../components/organisms/PageHeader';
 import InfoCardGrid from  '../components/organisms/InfoCardGrid';
 import RecentConversationsTable from  '../components/organisms/RecentConversationsTable';
 import RecentConversationsList from  '../components/organisms/RecentConversationsList';
+import { useAuth } from '@/context/AuthContext';
 
 const DashboardPage: React.FC = () => {
+  const { user } = useAuth()
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  console.log(user)
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);

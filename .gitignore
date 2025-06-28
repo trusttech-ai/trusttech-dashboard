@@ -10,6 +10,9 @@
 !.yarn/releases
 !.yarn/versions
 
+avid-glass-458405-r8-095e391572a6.json
+gcp-key.json
+
 # testing
 /coverage
 

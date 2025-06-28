@@ -12,7 +12,7 @@ model User {
   email         String    @unique
   password      String
   name          String?
-  document      String? @unique
+  document      String?   @unique
   role          Role      @default(USER)
   isActive      Boolean   @default(true)
   profileImage  String?

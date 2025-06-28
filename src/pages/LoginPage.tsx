@@ -41,7 +41,7 @@ const LoginPage: React.FC = () => {
     
     try {
       await login(email, password);
-      await router.push('/dashboard');
+      router.push('/dashboard');
     } catch (err: any) {
       console.error('Erro no login:', err);
       setError(err.message || 'Falha na autenticação. Por favor, verifique suas credenciais.');

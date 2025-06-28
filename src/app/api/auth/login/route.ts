@@ -115,6 +115,7 @@ export async function POST(req: NextRequest) {
         email: user.email,
         name: user.name,
         role: user.role,
+        profileImage: user.profileImage,
         settings: {
           theme: user.settings?.theme,
           emailNotifications: user.settings?.emailNotifications,

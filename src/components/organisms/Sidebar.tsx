@@ -1,4 +1,4 @@
-import React, { JSX, useState } from "react";
+import React, { JSX, useState, useEffect } from "react";
 
 import UserInfo from "../molecules/UserInfo";
 
@@ -88,21 +88,27 @@ const getIcon = (iconName: string) => {
 
   return iconMap[iconName] || iconMap.dashboard;
 };
-
 const Sidebar: React.FC<SidebarProps> = ({
   mobileMenuOpen,
   toggleMobileMenu,
 }) => {
   const [collapsed, setCollapsed] = useState<boolean>(false);
+  const [currentPath, setCurrentPath] = useState<string>("/");
+
+  // Obter o caminho atual quando o componente for montado
+  useEffect(() => {
+    setCurrentPath(window.location.pathname);
+  }, []);
 
   const toggleCollapse = () => {
     setCollapsed(!collapsed);
   };
 
+  // Define os items de navegação sem active pré-definido
   const navigationItems = [
-    { label: "Dashboard", icon: "dashboard", href: "/dashboard", active: false },
-    { label: "Envio de Documentos", icon: "upload", href: "/upload-documents", active: false },
-    { label: "Fluxo de Aprovação", icon: "approval", href: "/approval", active: true },
+    { label: "Dashboard", icon: "dashboard", href: "/dashboard" },
+    { label: "Envio de Documentos", icon: "upload", href: "/upload-documents" },
+    { label: "Fluxo de Aprovação", icon: "approval", href: "/approval" },
   ];
 
   return (
@@ -191,7 +197,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   collapsed ? "justify-center" : ""
                 } px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200
                    ${
-                     item.active
+                     currentPath === item.href
                        ? "bg-purple-700/20 text-purple-400 border-l-2 border-purple-500"
                        : "text-gray-300 hover:bg-gray-700 hover:text-white"
                    }`}

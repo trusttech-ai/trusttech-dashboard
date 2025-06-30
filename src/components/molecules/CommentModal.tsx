@@ -5,7 +5,7 @@ interface CommentModalProps {
   onClose: () => void;
   onSubmit: (comment: string) => void;
   title: string;
-  actionType: 'approve' | 'reject';
+  actionType: 'APPROVE' | 'REJECTED';
 }
 
 const CommentModal: React.FC<CommentModalProps> = ({ 
@@ -56,7 +56,7 @@ const CommentModal: React.FC<CommentModalProps> = ({
           <button
             type="button"
             className={`px-3 py-2 rounded-md text-white ${
-              actionType === 'approve' 
+              actionType === 'APPROVE' 
                 ? 'bg-green-600 hover:bg-green-700' 
                 : 'bg-red-600 hover:bg-red-700'
             }`}

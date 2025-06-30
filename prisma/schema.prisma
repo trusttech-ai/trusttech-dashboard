@@ -8,58 +8,74 @@ generator client {
 }
 
 model User {
-  id            Int       @id @default(autoincrement())
-  email         String    @unique
-  password      String
-  name          String?
-  document      String?   @unique
-  role          Role      @default(USER)
-  isActive      Boolean   @default(true)
-  profileImage  String?
-  lastLogin     DateTime?
-  refreshToken  String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  sessions      Session[]
-  settings      UserSettings?
+  id           Int           @id @default(autoincrement())
+  email        String        @unique
+  password     String
+  name         String?
+  document     String?       @unique
+  role         Role          @default(USER)
+  isActive     Boolean       @default(true)
+  profileImage String?
+  lastLogin    DateTime?
+  refreshToken String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  sessions     Session[]
+  settings     UserSettings?
 }
 
 model Session {
-  id        Int       @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   userId    Int
-  token     String    @unique
+  token     String   @unique
   expiresAt DateTime
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   ipAddress String?
   userAgent String?
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model UserSettings {
-  id              Int     @id @default(autoincrement())
-  userId          Int     @unique
-  theme           String  @default("light")
+  id                 Int     @id @default(autoincrement())
+  userId             Int     @unique
+  theme              String  @default("light")
   emailNotifications Boolean @default(true)
-  user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user               User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UploadLog {
+  id              String            @id @default(uuid())
+  fileName        String
+  fileType        String?
+  fileSize        Int?
+  filePath        String?
+  uploadedBy      String?
+  ipAddress       String?
+  userAgent       String?
+  status          FileApproveStatus @default(PENDING)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  approvalActions ApprovalAction[]
 }
 
 model ApprovalAction {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
+  logId     String
   fileName  String
   filePath  String
   action    String
   comment   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  userId    String? 
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  userId    String
+  uploadLog UploadLog @relation(fields: [logId], references: [id])
 }
-
 
 model trusttech_messages_log {
   id           String    @id @default(uuid()) @db.Uuid
   host_number  String?   @db.VarChar(25)
-  host_name  String?   @db.VarChar(25)
+  host_name    String?   @db.VarChar(25)
   user_number  String?   @db.VarChar(25)
   user_name    String?
   user_message String?
@@ -69,18 +85,25 @@ model trusttech_messages_log {
 }
 
 model trusttech_rewind_cron {
-  id           String   @id @default(uuid()) @db.Uuid
-  host_name  String?   @db.VarChar(25)
-  host_number  String?   @db.VarChar(25)
-  user_number  String   @db.VarChar(25)
-  user_name    String?  @db.VarChar(25)
-  active       Boolean
-  created_at   DateTime @default(now())
-  updated_at   DateTime @updatedAt
+  id          String   @id @default(uuid()) @db.Uuid
+  host_name   String?  @db.VarChar(25)
+  host_number String?  @db.VarChar(25)
+  user_number String   @db.VarChar(25)
+  user_name   String?  @db.VarChar(25)
+  active      Boolean
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
 }
 
 enum Role {
   USER
   ADMIN
   MANAGER
+}
+
+enum FileApproveStatus {
+  APPROVED
+  REJECTED
+  PENDING
+  FAILED
 }

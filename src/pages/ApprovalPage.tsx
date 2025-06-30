@@ -24,7 +24,7 @@ const ApprovalPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [processingFile, setProcessingFile] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [currentAction, setCurrentAction] = useState<'approve' | 'reject'>('approve');
+  const [currentAction, setCurrentAction] = useState<'APPROVE' | 'REJECTED'>('APPROVE');
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
 
   const toggleMobileMenu = () => {
@@ -34,15 +34,10 @@ const ApprovalPage: React.FC = () => {
   const fetchFiles = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/approval?folder=approvals/lunna/approval-pending');
+      const response = await fetch('/api/approval?action=PENDING');
       const data = await response.json();
       
-      if (data.success) {
-        setFiles(data.files);
-        setError(null);
-      } else {
-        setError(data.error || 'Erro ao carregar arquivos');
-      }
+      setFiles(data.approvalActions || []);
     } catch (err) {
       setError('Erro ao conectar com o servidor');
       console.error('Error fetching files:', err);
@@ -51,7 +46,7 @@ const ApprovalPage: React.FC = () => {
     }
   };
 
-  const handleFileAction = async (fileName: string, action: 'approve' | 'reject') => {
+  const handleFileAction = async (fileName: string, action: 'APPROVE' | 'REJECTED', comment: string = '') => {
     try {
       setProcessingFile(fileName);
       const response = await fetch('/api/approval', {
@@ -59,13 +54,16 @@ const ApprovalPage: React.FC = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ fileName, action }),
+        body: JSON.stringify({ 
+          fileName, 
+          action,
+          comment 
+        }),
       });
 
       const data = await response.json();
       
       if (data.success) {
-        // Remove o arquivo da lista após processamento
         setFiles(prev => prev.filter(file => file.name !== fileName));
       } else {
         setError(data.error || 'Erro ao processar arquivo');
@@ -78,36 +76,15 @@ const ApprovalPage: React.FC = () => {
     }
   };
 
-  // Add this function for direct approval without comment
-  const handleDirectAction = async (fileName: string, action: 'approve' | 'reject') => {
-    try {
-      setProcessingFile(fileName);
-      
-      const response = await fetch('/api/approval', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ fileName, action }),
-      });
-
-      const data = await response.json();
-      
-      if (data.success) {
-        // Remove o arquivo da lista após processamento
-        setFiles(prev => prev.filter(file => file.name !== fileName));
-      } else {
-        setError(data.error || 'Erro ao processar arquivo');
-      }
-    } catch (err) {
-      setError('Erro ao processar arquivo');
-      console.error('Error processing file:', err);
-    } finally {
-      setProcessingFile(null);
+  const handleDirectAction = async (fileName: string, action: 'APPROVE' | 'REJECTED') => {
+    if (action === 'REJECTED') {
+      openActionModal(fileName, action);
+    } else {
+      await handleFileAction(fileName, action);
     }
   };
 
-  const openActionModal = (fileName: string, action: 'approve' | 'reject') => {
+  const openActionModal = (fileName: string, action: 'APPROVE' | 'REJECTED') => {
     setSelectedFile(fileName);
     setCurrentAction(action);
     setModalOpen(true);
@@ -125,32 +102,14 @@ const ApprovalPage: React.FC = () => {
       setProcessingFile(selectedFile);
       setModalOpen(false);
       
-      const response = await fetch('/api/approval', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          fileName: selectedFile, 
-          action: currentAction,
-          comment 
-        }),
-      });
-
-      const data = await response.json();
+      await handleFileAction(selectedFile, currentAction, comment);
       
-      if (data.success) {
-        // Remove o arquivo da lista após processamento
-        setFiles(prev => prev.filter(file => file.name !== selectedFile));
-      } else {
-        setError(data.error || 'Erro ao processar arquivo');
-      }
+      setSelectedFile(null);
     } catch (err) {
       setError('Erro ao processar arquivo');
       console.error('Error processing file:', err);
     } finally {
       setProcessingFile(null);
-      setSelectedFile(null);
     }
   };
 
@@ -263,7 +222,7 @@ const ApprovalPage: React.FC = () => {
                       Arquivos Pendentes de Aprovação
                     </h2>
                     <span className="ml-3 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                      {files.length} {files.length === 1 ? 'arquivo' : 'arquivos'}
+                      {files?.length} {files?.length === 1 ? 'arquivo' : 'arquivos'}
                     </span>
                   </div>
                 </div>
@@ -278,7 +237,7 @@ const ApprovalPage: React.FC = () => {
                       <span className="text-gray-300">Carregando arquivos...</span>
                     </div>
                   </div>
-                ) : files.length === 0 ? (
+                ) : files?.length === 0 ? (
                   <div className="p-8 text-center">
                     <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -292,7 +251,7 @@ const ApprovalPage: React.FC = () => {
                   </div>
                 ) : (
                   <div className="divide-y divide-gray-700/50">
-                    {files.map((file) => (
+                    {files?.map((file) => (
                       <div key={file.name} className="p-6 hover:bg-gray-700/30 transition-colors">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-4">
@@ -328,7 +287,7 @@ const ApprovalPage: React.FC = () => {
                             </a>
                             
                             <button
-                              onClick={() => handleDirectAction(file.name, 'reject')}
+                              onClick={() => handleDirectAction(file.name, 'REJECTED')}
                               disabled={processingFile === file.name}
                               className="inline-flex items-center px-3 py-2 border border-red-600 rounded-md shadow-sm text-sm font-medium text-red-400 bg-transparent hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
@@ -346,7 +305,7 @@ const ApprovalPage: React.FC = () => {
                             </button>
                             
                             <button
-                              onClick={() => handleDirectAction(file.name, 'approve')}
+                              onClick={() => handleDirectAction(file.name, 'APPROVE')}
                               disabled={processingFile === file.name}
                               className="inline-flex items-center px-3 py-2 border border-green-600 rounded-md shadow-sm text-sm font-medium text-green-400 bg-transparent hover:bg-green-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
@@ -378,7 +337,7 @@ const ApprovalPage: React.FC = () => {
         isOpen={modalOpen}
         onClose={handleModalClose}
         onSubmit={handleActionWithComment}
-        title={`${currentAction === 'approve' ? 'Aprovar' : 'Rejeitar'} arquivo`}
+        title={`${currentAction === 'APPROVE' ? 'Aprovar' : 'Rejeitar'} arquivo`}
         actionType={currentAction}
       />
     </div>

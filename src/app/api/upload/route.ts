@@ -332,7 +332,6 @@ export async function POST(req: NextRequest) {
           const buffer = Buffer.from(bytes);
 
           // Gerar nome único para o arquivo no GCS
-          // Remover a geração de timestamp e pasta de data
           const uniqueFilename = `${uuidv4()}${extname(file.name)}`;
           const mimetype = getMimetype(file.name);
 

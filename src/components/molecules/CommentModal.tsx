@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface CommentModalProps {
   isOpen: boolean;
@@ -39,7 +39,7 @@ const CommentModal: React.FC<CommentModalProps> = ({
           <textarea
             id="comment"
             rows={4}
-            className="w-full rounded-md bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400 focus:ring-purple-500 focus:border-purple-500"
+            className="w-full rounded-md bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400 focus:ring-purple-500 focus:border-purple-500 p-1"
             placeholder="Motivo da decisão..."
             value={comment}
             onChange={(e) => setComment(e.target.value)}

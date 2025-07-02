@@ -49,6 +49,12 @@ const UploadDocumentsPage: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
 
+  // Add these state variables with the other state declarations
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [startDateFilter, setStartDateFilter] = useState<string>("");
+  const [endDateFilter, setEndDateFilter] = useState<string>("");
+  const [isFilterExpanded, setIsFilterExpanded] = useState<boolean>(false);
+
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
@@ -101,6 +107,27 @@ const UploadDocumentsPage: React.FC = () => {
   };
 
   const getFileIcon = (type: string) => {
+    const imageExtensions = [
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "bmp",
+      "svg",
+      "webp",
+      "avif",
+      "tiff",
+      "ico",
+      "jfif",
+      "pjpeg",
+      "pjp",
+    ];
+
+    const isImage = (val: string) =>
+      !!val &&
+      (val.startsWith("image/") ||
+        imageExtensions.some((ext) => val.toLowerCase().includes(ext)));
+
     if (type.includes("pdf")) {
       return (
         <svg
@@ -115,7 +142,7 @@ const UploadDocumentsPage: React.FC = () => {
           />
         </svg>
       );
-    } else if (type.includes("image")) {
+    } else if (isImage(type)) {
       return (
         <svg
           className="h-8 w-8 text-green-500"
@@ -224,7 +251,6 @@ const UploadDocumentsPage: React.FC = () => {
 
           data = await response.json();
 
-          // Correção para a chamada da API de log
           response = await fetch("/api/upload-log", {
             method: "POST",
             headers: {
@@ -234,23 +260,22 @@ const UploadDocumentsPage: React.FC = () => {
               fileName: file.name,
               fileType: file.type,
               fileSize: file.size,
-              filePath: `${uploadPath}/${file.name}`,
+              filePath: `${uploadPath}/${data.fileName}`,
               uploadedBy: user?.id || "system",
             }),
           });
 
-
-           await fetch('/api/approval', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  fileName: file.name,
-                  action: 'PENDING',
-                  comment: description ?? ''
-                })
-              });
+          await fetch("/api/approval", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              fileName: file.name,
+              action: "PENDING",
+              comment: description ?? "",
+            }),
+          });
         }
         // Para arquivos grandes, usar upload em chunks
         else {
@@ -282,7 +307,7 @@ const UploadDocumentsPage: React.FC = () => {
                 "x-file-name": file.name,
                 "x-file-id": fileId,
                 "x-file-size": file.size.toString(),
-                "x-storage-path": uploadPath, // Adiciona o caminho de armazenamento
+                "x-storage-path": uploadPath,
                 "Content-Range": `bytes ${start}-${end}/${file.size}`,
               },
             });
@@ -294,31 +319,30 @@ const UploadDocumentsPage: React.FC = () => {
             }
 
             if (data.complete) {
-              await fetch("/api/upload-log", {
+              response = await fetch("/api/upload-log", {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
                 },
-
                 body: JSON.stringify({
                   fileName: file.name,
                   fileType: file.type,
                   fileSize: file.size,
-                  filePath: `${uploadPath}/${file.name}`,
+                  filePath: `${uploadPath}/${data.fileName}`,
                   uploadedBy: user?.id || "system",
                 }),
               });
-
-              await fetch('/api/approval', {
-                method: 'POST',
+              
+              await fetch("/api/approval", {
+                method: "POST",
                 headers: {
-                  'Content-Type': 'application/json',
+                  "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
                   fileName: file.name,
-                  action: 'PENDING',
-                  comment: description ?? ''
-                })
+                  action: "PENDING",
+                  comment: description ?? "",
+                }),
               });
 
               break;
@@ -373,28 +397,56 @@ const UploadDocumentsPage: React.FC = () => {
     }
   };
 
-  const fetchApprovalHistory = async () => {
-    try {
-      setLoadingHistory(true);
-      setHistoryError(null);
+const fetchApprovalHistory = async () => {
+  try {
+    setLoadingHistory(true);
+    setHistoryError(null);
 
-      const response = await fetch('/api/approval?filePath=approvals/lunna/approval-pending');
-      const data = await response.json();
-
-      if (data.success) {
-        setApprovalHistory(data.approvalActions);
-      } else {
-        setHistoryError(
-          data.error || "Erro ao carregar histórico de aprovações"
-        );
-      }
-    } catch (err) {
-      setHistoryError("Erro ao conectar com o servidor");
-      console.error("Error fetching approval history:", err);
-    } finally {
-      setLoadingHistory(false);
+    const queryParams = new URLSearchParams();
+    
+    if (statusFilter !== 'all') {
+      queryParams.append('action', statusFilter);
     }
-  };
+    
+    if (startDateFilter) {
+      queryParams.append('startDate', startDateFilter);
+    }
+    
+    if (endDateFilter) {
+      queryParams.append('endDate', endDateFilter);
+    }
+    
+    const queryString = queryParams.toString();
+    const url = `/api/approval${queryString ? `?${queryString}` : ''}`;
+
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (data.success) {
+      setApprovalHistory(data.approvalActions);
+    } else {
+      setHistoryError(
+        data.error || "Erro ao carregar histórico de aprovações"
+      );
+    }
+  } catch (err) {
+    setHistoryError("Erro ao conectar com o servidor");
+    console.error("Error fetching approval history:", err);
+  } finally {
+    setLoadingHistory(false);
+  }
+};
+
+const applyFilters = () => {
+  fetchApprovalHistory();
+};
+
+const clearFilters = () => {
+  setStatusFilter('all');
+  setStartDateFilter('');
+  setEndDateFilter('');
+  fetchApprovalHistory();
+};
 
   useEffect(() => {
     fetchApprovalHistory();
@@ -810,22 +862,23 @@ const UploadDocumentsPage: React.FC = () => {
                               key={index}
                               className="p-4 hover:bg-gray-700/20 transition-colors"
                             >
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center space-x-3">
+                              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                {/* File info */}
+                                <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
                                   <div className="flex-shrink-0">
                                     {getFileIcon(file.type)}
                                   </div>
-                                  <div>
-                                    <h3 className="text-sm font-medium text-white">
+                                  <div className="flex-1 min-w-0">
+                                    <h3 className="text-sm font-medium text-white truncate max-w-[160px] md:max-w-none">
                                       {file.originalName}
                                     </h3>
-                                    <div className="flex items-center space-x-4 text-xs text-gray-400 mt-1">
+                                    <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 text-xs text-gray-400 mt-1">
                                       <span>{formatFileSize(file.size)}</span>
-                                      <span>•</span>
+                                      <span className="hidden md:inline-block">•</span>
                                       <span className="capitalize">
                                         {file.category}
                                       </span>
-                                      <span>•</span>
+                                      <span className="hidden md:inline-block">•</span>
                                       <span>
                                         {new Date(
                                           file.uploadedAt
@@ -839,21 +892,24 @@ const UploadDocumentsPage: React.FC = () => {
                                     )}
                                   </div>
                                 </div>
-                                <div className="flex items-center space-x-2">
+                                {/* Actions */}
+                                <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto mt-4 md:mt-0 md:items-center">
                                   {approvalAction ? (
                                     <span
                                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                                         approvalAction.action === "APPROVE"
                                           ? "bg-green-100 text-green-800"
                                           : "bg-red-100 text-red-800"
-                                      }`}
+                                      } w-full md:w-auto`}
                                     >
                                       {approvalAction.action === "APPROVE"
                                         ? "Aprovado"
+                                        : approvalAction.action === "PENDING"
+                                        ? "Aguardando Aprovação"
                                         : "Rejeitado"}
                                     </span>
                                   ) : (
-                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 w-full md:w-auto">
                                       Aguardando Aprovação
                                     </span>
                                   )}
@@ -861,7 +917,7 @@ const UploadDocumentsPage: React.FC = () => {
                                     href={file.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-purple-400 hover:text-purple-300 transition-colors"
+                                    className="text-purple-400 hover:text-purple-300 transition-colors flex items-center justify-center w-full md:w-auto"
                                   >
                                     <svg
                                       className="h-4 w-4"
@@ -884,7 +940,7 @@ const UploadDocumentsPage: React.FC = () => {
                               {approvalAction &&
                                 approvalAction.action === "REJECTED" &&
                                 approvalAction.comment && (
-                                  <div className="mt-2 bg-red-900/10 p-2 rounded border border-red-500/30">
+                                  <div className="mt-2 bg-red-900/10 p-2 rounded border border-red-500/30 md:mx-0 mx-[-1rem]">
                                     <p className="text-xs text-red-300">
                                       <span className="font-medium">
                                         Motivo da rejeição:{" "}
@@ -909,26 +965,131 @@ const UploadDocumentsPage: React.FC = () => {
                           Histórico de Aprovações
                         </h2>
                       </div>
-                      <button
-                        onClick={fetchApprovalHistory}
-                        className="inline-flex items-center px-3 py-1 border border-gray-600 rounded-md text-sm text-gray-300 hover:bg-gray-700 transition-colors"
-                      >
-                        <svg
-                          className="h-4 w-4 mr-1"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => setIsFilterExpanded(!isFilterExpanded)}
+                          className="inline-flex items-center px-3 py-1 border border-gray-600 rounded-md text-sm text-gray-300 hover:bg-gray-700 transition-colors"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                          />
-                        </svg>
-                        Atualizar
-                      </button>
+                          <svg
+                            className="h-4 w-4 mr-1"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+                            />
+                          </svg>
+                          Filtros
+                        </button>
+                        <button
+                          onClick={fetchApprovalHistory}
+                          className="inline-flex items-center px-3 py-1 border border-gray-600 rounded-md text-sm text-gray-300 hover:bg-gray-700 transition-colors"
+                        >
+                          <svg
+                            className="h-4 w-4 mr-1"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                            />
+                          </svg>
+                          Atualizar
+                        </button>
+                      </div>
                     </div>
+
+                    {/* Filter Panel */}
+                    {isFilterExpanded && (
+                      <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Status
+                          </label>
+                          <select
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            className="w-full bg-gray-700/50 text-white border border-gray-600 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                          >
+                            <option value="all">Todos</option>
+                            <option value="APPROVE">Aprovados</option>
+                            <option value="PENDING">Pendentes</option>
+                            <option value="REJECTED">Rejeitados</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Data Inicial
+                          </label>
+                          <input
+                            type="date"
+                            value={startDateFilter}
+                            onChange={(e) => setStartDateFilter(e.target.value)}
+                            className="w-full bg-gray-700/50 text-white border border-gray-600 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Data Final
+                          </label>
+                          <input
+                            type="date"
+                            value={endDateFilter}
+                            onChange={(e) => setEndDateFilter(e.target.value)}
+                            className="w-full bg-gray-700/50 text-white border border-gray-600 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                          />
+                        </div>
+                        <div className="md:col-span-3 flex justify-end space-x-3">
+                          <button
+                            onClick={clearFilters}
+                            className="inline-flex items-center px-4 py-2 border border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-400 bg-transparent hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+                          >
+                            <svg 
+                              className="h-4 w-4 mr-2" 
+                              fill="none" 
+                              viewBox="0 0 24 24" 
+                              stroke="currentColor"
+                            >
+                              <path 
+                                strokeLinecap="round" 
+                                strokeLinejoin="round" 
+                                strokeWidth={2} 
+                                d="M6 18L18 6M6 6l12 12" 
+                              />
+                            </svg>
+                            Limpar Filtros
+                          </button>
+                          
+                          <button
+                            onClick={applyFilters}
+                            className="inline-flex items-center px-4 py-2 border border-purple-600 rounded-md shadow-sm text-sm font-medium text-purple-400 bg-transparent hover:bg-purple-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors"
+                          >
+                            <svg 
+                              className="h-4 w-4 mr-2" 
+                              fill="none" 
+                              viewBox="0 0 24 24" 
+                              stroke="currentColor"
+                            >
+                              <path 
+                                strokeLinecap="round" 
+                                strokeLinejoin="round" 
+                                strokeWidth={2} 
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" 
+                              />
+                            </svg>
+                            Aplicar Filtros
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div>
@@ -979,6 +1140,9 @@ const UploadDocumentsPage: React.FC = () => {
                             <div className="flex items-center justify-between">
                               <div className="flex-1">
                                 <div className="flex items-center">
+                                  <div className="flex-shrink-0 mr-2">
+                                    {getFileIcon(item.fileName || item.filePath || "")}
+                                  </div>
                                   <h3 className="text-sm font-medium text-white">
                                     {item.fileName}
                                   </h3>
@@ -986,11 +1150,15 @@ const UploadDocumentsPage: React.FC = () => {
                                     className={`ml-3 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                                       item.action === "APPROVE"
                                         ? "bg-green-100 text-green-800"
+                                        : item.action === "PENDING"
+                                        ? "bg-yellow-100 text-yellow-800"
                                         : "bg-red-100 text-red-800"
                                     }`}
                                   >
                                     {item.action === "APPROVE"
                                       ? "Aprovado"
+                                      : item.action === "PENDING"
+                                      ? "Aguardando Aprovação"
                                       : "Rejeitado"}
                                   </span>
                                 </div>

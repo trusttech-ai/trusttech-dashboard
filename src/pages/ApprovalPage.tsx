@@ -5,19 +5,24 @@ import Sidebar from '../components/organisms/Sidebar';
 import MobileHeader from '../components/molecules/MobileHeader';
 import PageHeader from '../components/organisms/PageHeader';
 import CommentModal from '../components/molecules/CommentModal';
+import { useAuth } from '@/context/AuthContext';
 
 interface ApprovalFile {
-  name: string;
+  id: string;
+  logId: string;
   fileName: string;
-  size: number;
-  created: string;
-  updated: string;
-  contentType: string;
+  filePath: string;
+  action: string;
+  comment: string;
+  createdAt: string;
+  updatedAt: string;
+  userId: string;
   url: string;
-  folder: string;
 }
 
 const ApprovalPage: React.FC = () => {
+  const { user } = useAuth()
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [files, setFiles] = useState<ApprovalFile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,7 +30,7 @@ const ApprovalPage: React.FC = () => {
   const [processingFile, setProcessingFile] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [currentAction, setCurrentAction] = useState<'APPROVE' | 'REJECTED'>('APPROVE');
-  const [selectedFile, setSelectedFile] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<ApprovalFile | null>(null);
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -46,46 +51,48 @@ const ApprovalPage: React.FC = () => {
     }
   };
 
-  const handleFileAction = async (fileName: string, action: 'APPROVE' | 'REJECTED', comment: string = '') => {
-    try {
-      setProcessingFile(fileName);
-      const response = await fetch('/api/approval', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          fileName, 
-          action,
-          comment 
-        }),
-      });
+const handleFileAction = async (file: ApprovalFile, action: 'APPROVE' | 'REJECTED', comment: string = '') => {
+  try {
+    setProcessingFile(file.fileName);
+    const response = await fetch('/api/approval', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        id: file.id,
+        action,
+        fileName: file.fileName,
+        comment,
+        userId: user?.id
+      }),
+    });
 
-      const data = await response.json();
-      
-      if (data.success) {
-        setFiles(prev => prev.filter(file => file.name !== fileName));
-      } else {
-        setError(data.error || 'Erro ao processar arquivo');
-      }
-    } catch (err) {
-      setError('Erro ao processar arquivo');
-      console.error('Error processing file:', err);
-    } finally {
-      setProcessingFile(null);
-    }
-  };
-
-  const handleDirectAction = async (fileName: string, action: 'APPROVE' | 'REJECTED') => {
-    if (action === 'REJECTED') {
-      openActionModal(fileName, action);
+    const data = await response.json();
+    
+    if (data.success) {
+      setFiles(prev => prev.filter(f => f.id !== file.id));
     } else {
-      await handleFileAction(fileName, action);
+      setError(data.error || 'Erro ao processar arquivo');
+    }
+  } catch (err) {
+    setError('Erro ao processar arquivo');
+    console.error('Error processing file:', err);
+  } finally {
+    setProcessingFile(null);
+  }
+};
+
+  const handleDirectAction = async (file: ApprovalFile, action: 'APPROVE' | 'REJECTED') => {
+    if (action === 'REJECTED') {
+      openActionModal(file, action);
+    } else {
+      await handleFileAction(file, action);
     }
   };
 
-  const openActionModal = (fileName: string, action: 'APPROVE' | 'REJECTED') => {
-    setSelectedFile(fileName);
+  const openActionModal = (file: ApprovalFile, action: 'APPROVE' | 'REJECTED') => {
+    setSelectedFile(file);
     setCurrentAction(action);
     setModalOpen(true);
   };
@@ -99,7 +106,7 @@ const ApprovalPage: React.FC = () => {
     if (!selectedFile) return;
     
     try {
-      setProcessingFile(selectedFile);
+      setProcessingFile(selectedFile.fileName);
       setModalOpen(false);
       
       await handleFileAction(selectedFile, currentAction, comment);
@@ -113,14 +120,6 @@ const ApprovalPage: React.FC = () => {
     }
   };
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {
       day: '2-digit',
@@ -131,29 +130,79 @@ const ApprovalPage: React.FC = () => {
     });
   };
 
-  const getFileIcon = (contentType: string) => {
-    if (contentType?.includes('pdf')) {
+  const getFileIcon = (type: string) => {
+    const imageExtensions = [
+      'jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp', 'avif', 'tiff', 'ico', 'jfif', 'pjpeg', 'pjp'
+    ];
+
+    const isImage = (val: string) =>
+      !!val &&
+      (
+        val.startsWith('image/') ||
+        imageExtensions.some(ext =>
+          val.toLowerCase().includes(ext)
+        )
+      );
+
+    if (type.includes("pdf")) {
       return (
-        <svg className="h-8 w-8 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+        <svg
+          className="h-8 w-8 text-red-500"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fillRule="evenodd"
+            d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
+            clipRule="evenodd"
+          />
         </svg>
       );
-    } else if (contentType?.includes('image')) {
+    } else if (isImage(type)) {
       return (
-        <svg className="h-8 w-8 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+        <svg
+          className="h-8 w-8 text-green-500"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fillRule="evenodd"
+            d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+            clipRule="evenodd"
+          />
         </svg>
       );
-    } else if (contentType?.includes('text') || contentType?.includes('document')) {
+    } else if (
+      type.includes("text") ||
+      type.includes("document") ||
+      type.includes("word") ||
+      type.includes("excel")
+    ) {
       return (
-        <svg className="h-8 w-8 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+        <svg
+          className="h-8 w-8 text-blue-500"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fillRule="evenodd"
+            d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
+            clipRule="evenodd"
+          />
         </svg>
       );
     } else {
       return (
-        <svg className="h-8 w-8 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+        <svg
+          className="h-8 w-8 text-gray-500"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fillRule="evenodd"
+            d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
+            clipRule="evenodd"
+          />
         </svg>
       );
     }
@@ -252,22 +301,20 @@ const ApprovalPage: React.FC = () => {
                 ) : (
                   <div className="divide-y divide-gray-700/50">
                     {files?.map((file) => (
-                      <div key={file.name} className="p-6 hover:bg-gray-700/30 transition-colors">
+                      <div key={file.fileName} className="p-6 hover:bg-gray-700/30 transition-colors">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-4">
                             <div className="flex-shrink-0">
-                              {getFileIcon(file.contentType)}
+                              {getFileIcon(file.fileName.split('.').pop() || '')}
                             </div>
                             <div className="flex-1 min-w-0">
                               <h3 className="text-lg font-medium text-white truncate">
                                 {file.fileName}
                               </h3>
                               <div className="flex items-center space-x-4 text-sm text-gray-400 mt-1">
-                                <span>{formatFileSize(file.size)}</span>
+                                <span>Criado: {formatDate(file.createdAt)}</span>
                                 <span>•</span>
-                                <span>Criado: {formatDate(file.created)}</span>
-                                <span>•</span>
-                                <span>Atualizado: {formatDate(file.updated)}</span>
+                                <span>Atualizado: {formatDate(file.updatedAt)}</span>
                               </div>
                             </div>
                           </div>
@@ -287,11 +334,11 @@ const ApprovalPage: React.FC = () => {
                             </a>
                             
                             <button
-                              onClick={() => handleDirectAction(file.name, 'REJECTED')}
-                              disabled={processingFile === file.name}
+                              onClick={() => handleDirectAction(file, 'REJECTED')}
+                              disabled={processingFile === file.fileName}
                               className="inline-flex items-center px-3 py-2 border border-red-600 rounded-md shadow-sm text-sm font-medium text-red-400 bg-transparent hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                              {processingFile === file.name ? (
+                              {processingFile === file.fileName ? (
                                 <svg className="animate-spin h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -305,11 +352,11 @@ const ApprovalPage: React.FC = () => {
                             </button>
                             
                             <button
-                              onClick={() => handleDirectAction(file.name, 'APPROVE')}
-                              disabled={processingFile === file.name}
+                              onClick={() => handleDirectAction(file, 'APPROVE')}
+                              disabled={processingFile === file.fileName}
                               className="inline-flex items-center px-3 py-2 border border-green-600 rounded-md shadow-sm text-sm font-medium text-green-400 bg-transparent hover:bg-green-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                              {processingFile === file.name ? (
+                              {processingFile === file.fileName ? (
                                 <svg className="animate-spin h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>

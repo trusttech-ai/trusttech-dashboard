@@ -1,6 +1,8 @@
 import React, { JSX, useState, useEffect } from "react";
 
 import UserInfo from "../molecules/UserInfo";
+import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
 
 interface SidebarProps {
   mobileMenuOpen: boolean;
@@ -92,6 +94,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   mobileMenuOpen,
   toggleMobileMenu,
 }) => {
+  const { user }  = useAuth()
+
   const [collapsed, setCollapsed] = useState<boolean>(false);
   const [currentPath, setCurrentPath] = useState<string>("/");
 
@@ -106,8 +110,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   // Define os items de navegação sem active pré-definido
   const navigationItems = [
-    { label: "Dashboard", icon: "dashboard", href: "/dashboard" },
-    { label: "Envio de Documentos", icon: "upload", href: "/upload-documents" },
+    { label: "Envio de Documentos", icon: "upload", href: "/upload-documents", adminOnly: true },
     { label: "Fluxo de Aprovação", icon: "approval", href: "/approval" },
   ];
 
@@ -189,24 +192,27 @@ const Sidebar: React.FC<SidebarProps> = ({
         <div className="relative flex flex-col overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent min-h-[calc(100vh-5em)]">
           {/* Navigation links */}
           <nav className="px-3 mt-6 space-y-1 flex-grow">
-            {navigationItems.map((item) => (
-              <a
+            {navigationItems
+              .filter(item => !item.adminOnly || user?.role === "ADMIN")
+              .map((item) => (
+              <Link
                 key={item.label}
                 href={item.href}
                 className={`flex items-center ${
                   collapsed ? "justify-center" : ""
                 } px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200
-                   ${
-                     currentPath === item.href
-                       ? "bg-purple-700/20 text-purple-400 border-l-2 border-purple-500"
-                       : "text-gray-300 hover:bg-gray-700 hover:text-white"
-                   }`}
+                  ${
+                    currentPath === item.href
+                      ? "bg-purple-700/20 text-purple-400 border-l-2 border-purple-500"
+                      : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                  }`}
+                onClick={toggleMobileMenu} // se quiser fechar o menu mobile ao clicar
               >
                 <div className={`${collapsed ? "" : "mr-3"}`}>
                   {getIcon(item.icon)}
                 </div>
                 {!collapsed && <span>{item.label}</span>}
-              </a>
+              </Link>
             ))}
           </nav>
 

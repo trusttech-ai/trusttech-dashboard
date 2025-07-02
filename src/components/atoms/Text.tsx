@@ -13,8 +13,7 @@ const Text: React.FC<TextProps> = ({
   className = '',
   color = ''
 }) => {
-  const colorClass = color || '';
-  
+const colorClass = color || 'text-white';  
   switch (variant) {
     case 'h1':
       return <h1 className={`text-2xl font-semibold ${colorClass} ${className} transition-colors duration-200`}>{children}</h1>;

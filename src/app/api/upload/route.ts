@@ -170,7 +170,6 @@ export async function POST(req: NextRequest) {
       if (start === 0) {
         // Gerar nome único para o arquivo no GCS
         // Remover a geração de timestamp e pasta de data
-        const uniqueFilename = `${fileId}${fileExtension}`;
         const mimetype = getMimetype(originalFilename);
         const storagePath =
           req.headers.get("x-storage-path") || "users-profiles-pictures/images";
@@ -179,7 +178,7 @@ export async function POST(req: NextRequest) {
           // Inicializar upload resumável no GCS
           const { stream, filename: fullPath } = await initResumableUpload(
             storagePath || "users-profiles-pictures/images", // Usa o caminho fornecido
-            uniqueFilename,
+            originalFilename,
             mimetype,
             total
           );
@@ -237,10 +236,6 @@ export async function POST(req: NextRequest) {
           // Atualizar o progresso
           uploadInfo.uploadedSize += buffer.length;
           uploadInfo.lastChunk = Date.now();
-
-          console.log(
-            `Chunk enviado: ${fileId} - ${uploadInfo.uploadedSize}/${uploadInfo.totalSize}`
-          );
         } catch (error) {
           console.error("Erro ao fazer upload do chunk:", error);
           uploadsInProgress.delete(fileId);
@@ -255,7 +250,6 @@ export async function POST(req: NextRequest) {
       const uploadInfo = uploadsInProgress.get(fileId);
       if (uploadInfo && uploadInfo.uploadedSize >= uploadInfo.totalSize) {
         try {
-          // Finalizar upload no GCS
           const gcsUrl = await finalizeResumableUpload(
             uploadInfo.stream,
             uploadInfo.filename
@@ -263,10 +257,6 @@ export async function POST(req: NextRequest) {
 
           // Limpar o registro do upload em andamento
           uploadsInProgress.delete(fileId);
-
-          console.log(
-            `Upload finalizado: ${fileId} - ${uploadInfo.originalName}`
-          );
 
           // Retornar informações sobre o arquivo completo
           return NextResponse.json({
@@ -346,6 +336,8 @@ export async function POST(req: NextRequest) {
             uniqueFilename,
             mimetype
           );
+
+          console.log(gcsUrl);
 
           console.log(
             `Upload direto finalizado: ${file.name} - ${file.size} bytes`

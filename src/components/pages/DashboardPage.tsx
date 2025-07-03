@@ -1,6 +1,8 @@
 "use client"; 
 import React, { useState } from 'react';
 
+import { useAuth } from '@/context/AuthContext';
+
 import Sidebar from  '../organisms/Sidebar';
 import MobileHeader from  '../molecules/MobileHeader';
 import PageHeader from  '../organisms/PageHeader';
@@ -9,7 +11,11 @@ import RecentConversationsTable from  '../organisms/RecentConversationsTable';
 import RecentConversationsList from  '../organisms/RecentConversationsList';
 
 const DashboardPage: React.FC = () => {
+  const { user } = useAuth()
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  console.log(user)
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);

@@ -28,7 +28,6 @@ DATABASE_URL="postgresql://username:password@host:port/database_name"
 JWT_SECRET="your-super-secret-jwt-key-change-this-in-production"
 
 # Google Cloud Storage
-GOOGLE_CLOUD_PROJECT_ID="your-project-id"
 GOOGLE_CLOUD_KEYFILE="/app/gcp-key.json"
 
 # Next.js

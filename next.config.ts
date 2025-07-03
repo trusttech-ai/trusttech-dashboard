@@ -14,8 +14,6 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [];
   },
-  // For production optimization
-  swcMinify: true,
   compress: true,
 };
 

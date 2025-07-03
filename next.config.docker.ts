@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
-  // Remove standalone for Vercel - use default serverless
-  // output: "standalone", // Only for Docker deployment
+// Configuration for Docker deployment
+const dockerConfig: NextConfig = {
+  output: "standalone",
   
   eslint: {
     ignoreDuringBuilds: true,
@@ -11,7 +11,6 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   
-  // Configure redirects
   async redirects() {
     return [
       {
@@ -22,18 +21,17 @@ const nextConfig: NextConfig = {
     ];
   },
   
-  // Optimize for production
   compress: true,
   poweredByHeader: false,
   
-  // External packages for server components (updated syntax)
-  serverExternalPackages: ['@prisma/client'],
+  experimental: {
+    serverComponentsExternalPackages: ['@prisma/client'],
+  },
   
-  // Image optimization
   images: {
     domains: ['localhost'],
     unoptimized: false,
   },
 };
 
-module.exports = nextConfig;
+export default dockerConfig;

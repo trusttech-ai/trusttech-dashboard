@@ -1,10 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "standalone",
-  serverRuntimeConfig: {
-    maxRequestBodySize: "50gb",
-  },
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -12,9 +8,21 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   async redirects() {
-    return [];
+    return [
+      {
+        source: "/",
+        destination: "/login",
+        permanent: false,
+      },
+    ];
   },
   compress: true,
+  poweredByHeader: false,
+  serverExternalPackages: ["@prisma/client"],
+  images: {
+    domains: ["localhost"],
+    unoptimized: false,
+  },
 };
 
 module.exports = nextConfig;

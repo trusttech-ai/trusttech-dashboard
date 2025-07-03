@@ -4,9 +4,9 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 
-import Button from '../components/atoms/Button';
-import Logo from '../components/atoms/Logo';
-import { uploadFile } from '../lib/uploadFile';
+import Button from '../atoms/Button';
+import Logo from '../atoms/Logo';
+import { uploadFile } from '@/lib/uploadFile';
 
 const RegisterPage: React.FC = () => {
   const router = useRouter();

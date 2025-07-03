@@ -2,9 +2,10 @@
 import React, { useState, useCallback, useEffect } from "react";
 import path from "path";
 
-import Sidebar from "../components/organisms/Sidebar";
-import MobileHeader from "../components/molecules/MobileHeader";
-import PageHeader from "../components/organisms/PageHeader";
+import Sidebar from "../organisms/Sidebar";
+import MobileHeader from "../molecules/MobileHeader";
+import PageHeader from "../organisms/PageHeader";
+
 import { useAuth } from "@/context/AuthContext";
 
 interface UploadedFile {

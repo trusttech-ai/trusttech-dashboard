@@ -1,6 +1,6 @@
 "use client";
 
-import UploadDocumentsPage from "@/pages/UploadDocumentsPage";
+import UploadDocumentsPage from "@/components/pages/UploadDocumentsPage";
 
 export default function Page() {
   return <UploadDocumentsPage />;

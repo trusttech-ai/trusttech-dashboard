@@ -1,10 +1,10 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 
-import Sidebar from '../components/organisms/Sidebar';
-import MobileHeader from '../components/molecules/MobileHeader';
-import PageHeader from '../components/organisms/PageHeader';
-import CommentModal from '../components/molecules/CommentModal';
+import Sidebar from '../organisms/Sidebar';
+import MobileHeader from '../molecules/MobileHeader';
+import PageHeader from '../organisms/PageHeader';
+import CommentModal from '../molecules/CommentModal';
 import { useAuth } from '@/context/AuthContext';
 
 interface ApprovalFile {

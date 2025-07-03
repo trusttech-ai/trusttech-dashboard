@@ -1,12 +1,12 @@
 "use client"; 
 import React, { useState } from 'react';
 
-import Sidebar from  '../components/organisms/Sidebar';
-import MobileHeader from  '../components/molecules/MobileHeader';
-import PageHeader from  '../components/organisms/PageHeader';
-import InfoCardGrid from  '../components/organisms/InfoCardGrid';
-import RecentConversationsTable from  '../components/organisms/RecentConversationsTable';
-import RecentConversationsList from  '../components/organisms/RecentConversationsList';
+import Sidebar from  '../organisms/Sidebar';
+import MobileHeader from  '../molecules/MobileHeader';
+import PageHeader from  '../organisms/PageHeader';
+import InfoCardGrid from  '../organisms/InfoCardGrid';
+import RecentConversationsTable from  '../organisms/RecentConversationsTable';
+import RecentConversationsList from  '../organisms/RecentConversationsList';
 
 const DashboardPage: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

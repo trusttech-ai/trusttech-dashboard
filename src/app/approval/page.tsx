@@ -1,6 +1,6 @@
 "use client";
 
-import ApprovalPage from "@/pages/ApprovalPage";
+import ApprovalPage from "@/components/pages/ApprovalPage";
 
 export default function Page() {
   return <ApprovalPage />;

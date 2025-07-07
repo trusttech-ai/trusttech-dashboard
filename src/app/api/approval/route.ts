@@ -133,13 +133,21 @@ export async function POST(request: NextRequest) {
         },
       });
 
+      if (!log) {
+        console.error(`No upload log found for file: ${baseName}`);
+        return NextResponse.json(
+          { success: false, error: "Upload log not found" },
+          { status: 404 }
+        );
+      }
+
       await prisma.approvalAction.create({
         data: {
           fileName: baseName,
           filePath: log.filePath ?? "",
           action: action,
           comment: comment || "",
-          logId: log?.id,
+          logId: log.id,
           userId: "system",
         },
       });

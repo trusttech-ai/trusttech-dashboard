@@ -16,19 +16,19 @@ DROP TABLE "MessagesLog";
 DROP TABLE "RewindCron";
 
 -- CreateTable
-CREATE TABLE "trusttech_messages_log" (
-    "id" UUID NOT NULL,
-    "host_number" VARCHAR(25),
-    "host_name" VARCHAR(25),
-    "user_number" VARCHAR(25),
-    "user_name" TEXT,
-    "user_message" TEXT,
-    "bot_response" TEXT,
-    "created_at" TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+-- CREATE TABLE "trusttech_messages_log" (
+--     "id" UUID NOT NULL,
+--     "host_number" VARCHAR(25),
+--     "host_name" VARCHAR(25),
+--     "user_number" VARCHAR(25),
+--     "user_name" TEXT,
+--     "user_message" TEXT,
+--     "bot_response" TEXT,
+--     "created_at" TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+--     "updated_at" TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "trusttech_messages_log_pkey" PRIMARY KEY ("id")
-);
+--     CONSTRAINT "trusttech_messages_log_pkey" PRIMARY KEY ("id")
+-- );
 
 -- CreateTable
 CREATE TABLE "trusttech_rewind_cron" (

@@ -74,14 +74,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const {
-      fileName,
-      fileType,
-      fileSize,
-      filePath,
-      userId = "system",
-      uploadedBy,
-    } = await request.json();
+    const { fileName, fileType, fileSize, filePath, uploadedBy } =
+      await request.json();
 
     if (!fileName) {
       return NextResponse.json(
@@ -97,7 +91,7 @@ export async function POST(request: NextRequest) {
           fileType: fileType || null,
           fileSize: fileSize ? Number(fileSize) : null,
           filePath: filePath || null,
-          uploadedBy: uploadedBy || userId,
+          uploadedBy: uploadedBy ? Number(uploadedBy) : null,
           ipAddress: request.headers.get("x-forwarded-for") || "" || null,
           userAgent: request.headers.get("user-agent") || null,
         },

@@ -1,16 +1,18 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root,
 .light {
-  --background: #ffffff;
+  /* --background: #ffffff;
   --foreground: #171717;
-  --primary: #8b5cf6; /* Updated to purple */
+  --primary: #8b5cf6;
   --card-bg: #ffffff;
   --card-border: #e5e7eb;
   --input-bg: #ffffff;
   --input-border: #d1d5db;
   --input-text: #171717;
-  --button-bg: #8b5cf6; /* Updated to purple */
+  --button-bg: #8b5cf6; 
   --button-text: #ffffff;
   --sidebar-bg: #f9fafb;
   --sidebar-hover: #f3f4f6;
@@ -18,7 +20,25 @@
   --header-bg: #ffffff;
   --table-header-bg: #f9fafb;
   --table-border: #e5e7eb;
-  --hover-bg: #f3f4f6;
+  --hover-bg: #f3f4f6; */
+
+   --background: #111827;
+  --foreground: #f9fafb;
+  --primary: #8b5cf6; /* Updated to purple */
+  --card-bg: #1f2937;
+  --card-border: #374151;
+  --input-bg: #1f2937;
+  --input-border: #374151;
+  --input-text: #f9fafb;
+  --button-bg: #8b5cf6; /* Updated to purple */
+  --button-text: #ffffff;
+  --sidebar-bg: #111827;
+  --sidebar-hover: #1f2937;
+  --sidebar-active: #374151;
+  --header-bg: #1f2937;
+  --table-header-bg: #1f2937;
+  --table-border: #374151;
+  --hover-bg: #1f2937;
 }
 
 .dark {
@@ -57,7 +77,3 @@ body {
 *, *::before, *::after {
   box-sizing: border-box;
 }
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;

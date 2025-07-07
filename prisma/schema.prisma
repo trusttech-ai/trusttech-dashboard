@@ -1,10 +1,10 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-}
-
-generator client {
-  provider = "prisma-client-js"
 }
 
 model User {
@@ -12,7 +12,6 @@ model User {
   email        String        @unique
   password     String
   name         String?
-  document     String?       @unique
   role         Role          @default(USER)
   isActive     Boolean       @default(true)
   profileImage String?
@@ -20,7 +19,9 @@ model User {
   refreshToken String?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+  document     String?       @unique
   sessions     Session[]
+  uploadLogs   UploadLog[]
   settings     UserSettings?
 }
 
@@ -50,18 +51,19 @@ model UploadLog {
   fileType        String?
   fileSize        Int?
   filePath        String?
-  uploadedBy      String?
   ipAddress       String?
   userAgent       String?
   status          FileApproveStatus @default(PENDING)
+  errorMessage    String?
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
+  uploadedBy      Int?
   approvalActions ApprovalAction[]
+  user            User?             @relation(fields: [uploadedBy], references: [id])
 }
 
 model ApprovalAction {
   id        String    @id @default(uuid())
-  logId     String
   fileName  String
   filePath  String
   action    String
@@ -69,11 +71,35 @@ model ApprovalAction {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   userId    String
+  logId     String
   uploadLog UploadLog @relation(fields: [logId], references: [id])
 }
 
 model trusttech_messages_log {
   id           String    @id @default(uuid()) @db.Uuid
+  user_number  String?   @db.VarChar(25)
+  user_name    String?
+  user_message String?
+  bot_response String?
+  created_at   DateTime? @default(now()) @db.Timestamp(6)
+  updated_at   DateTime? @default(now()) @updatedAt @db.Timestamp(6)
+  host_name    String?   @db.VarChar(25)
+  host_number  String?   @db.VarChar(25)
+}
+
+model trusttech_rewind_cron {
+  id          String   @id @default(uuid()) @db.Uuid
+  user_number String   @db.VarChar(25)
+  active      Boolean
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  host_name   String?  @db.VarChar(25)
+  host_number String?  @db.VarChar(25)
+  user_name   String?  @db.VarChar(25)
+}
+
+model MessagesLog {
+  id           String    @id @db.Uuid
   host_number  String?   @db.VarChar(25)
   host_name    String?   @db.VarChar(25)
   user_number  String?   @db.VarChar(25)
@@ -81,18 +107,18 @@ model trusttech_messages_log {
   user_message String?
   bot_response String?
   created_at   DateTime? @default(now()) @db.Timestamp(6)
-  updated_at   DateTime? @default(now()) @updatedAt @db.Timestamp(6)
+  updated_at   DateTime? @default(now()) @db.Timestamp(6)
 }
 
-model trusttech_rewind_cron {
-  id          String   @id @default(uuid()) @db.Uuid
+model RewindCron {
+  id          String   @id @db.Uuid
   host_name   String?  @db.VarChar(25)
   host_number String?  @db.VarChar(25)
   user_number String   @db.VarChar(25)
   user_name   String?  @db.VarChar(25)
   active      Boolean
   created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  updated_at  DateTime
 }
 
 enum Role {
